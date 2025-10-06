@@ -19,7 +19,8 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
 } from "firebase/auth";
-import { app } from "@/firebaseConfig";
+import { app, db } from "@/firebaseConfig";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 
 const { width, height } = Dimensions.get("window");
 
@@ -31,34 +32,40 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
-  const handleRegister = async () => {
-    if (!firstName || !lastName || !email || !password || !confirm) {
-      Alert.alert("Uyarı", "Lütfen tüm alanları doldurun.");
-      return;
-    }
-    if (password !== confirm) {
-      Alert.alert("Hata", "Şifreler eşleşmiyor.");
-      return;
-    }
+ const handleRegister = async () => {
+  if (!firstName || !lastName || !email || !password || !confirm) {
+    Alert.alert("Uyarı", "Lütfen tüm alanları doldurun.");
+    return;
+  }
+  if (password !== confirm) {
+    Alert.alert("Hata", "Şifreler eşleşmiyor.");
+    return;
+  }
 
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-      await updateProfile(user, {
-        displayName: `${firstName} ${lastName}`,
-      });
+    // Firebase displayName ayarla
+    await updateProfile(user, {
+      displayName: `${firstName} ${lastName}`,
+    });
 
-      Alert.alert("Başarılı", "Kayıt işlemi tamamlandı!");
-      router.replace("/(tabs)");
-    } catch (error: any) {
-      Alert.alert("Kayıt Hatası", error.message);
-    }
-  };
+    // 🔥 Firestore’a kullanıcı bilgisi ekle
+    await setDoc(doc(db, "users", user.uid), {
+      firstName,
+      lastName,
+      email,
+      photoURL: "",
+      createdAt: serverTimestamp(),
+    });
+
+    Alert.alert("Başarılı", "Kayıt işlemi tamamlandı!");
+    router.replace("/(tabs)");
+  } catch (error: any) {
+    Alert.alert("Kayıt Hatası", error.message);
+  }
+};
 
   return (
     <ImageBackground

@@ -1,45 +1,119 @@
-import { View, Text, Pressable, Alert } from "react-native";
-import React from "react";
-import { getAuth, signOut } from "firebase/auth";
-import { router } from "expo-router";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Modal,
+  Pressable,
+  Dimensions,
+  Image,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { PinchGestureHandler } from "react-native-gesture-handler";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
+import CVCard from "@/components/CVCard";
+
+const { width, height } = Dimensions.get("window");
+
+const templates = [
+  {
+    id: "1",
+    name: "Classic Blue",
+    description: "Minimal, modern ve profesyonel CV şablonu.",
+    image: require("@/assets/templates/classic-blue.png"),
+  },
+  {
+    id: "2",
+    name: "Elegant Gray",
+    description: "Kurumsal ve sade bir tasarım isteyenler için.",
+    image: require("@/assets/templates/elegant-gray.png"),
+  },
+  {
+    id: "3",
+    name: "Creative Accent",
+    description: "Renkli ve yaratıcı sektörlere uygun CV stili.",
+    image: require("@/assets/templates/creative-accent.png"),
+  },
+];
 
 export default function HomeScreen() {
+  const [selected, setSelected] = useState<any>(null);
+  const renderItem = ({ item }: any) => (
+    <CVCard item={item} onPreview={(cv: any) => setSelected(cv)} />
+  );
 
-    const auth = getAuth();
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.replace("/auth/login"); // giriş ekranına dön
-    } catch (error: any) {
-      Alert.alert("Hata", error.message);
-    }
+  // 🔍 Zoom animasyonu
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+  const onPinchGesture = (event: any) => {
+    scale.value = event.nativeEvent.scale;
   };
 
   return (
-    <View className="flex-1 justify-center items-center bg-white">
-      <Text className="text-xl font-bold text-[#0C94B9]">
-        Ana Sayfa (Tabs)
+    <View className="flex-1 bg-[#f5f5f5]">
+      {/* 🔹 Tam ekran arka plan */}
+      <Image
+        source={require("@/assets/images/profile-bg.png")} // örnek bir arka plan
+        className="absolute w-full h-full"
+        resizeMode="cover"
+      />
+
+      {/* Başlık */}
+      <Text className="text-2xl font-extrabold text-white text-center mt-16 mb-4">
+        CV Tasarımları
       </Text>
 
-
-
-
-          <Pressable
-        onPress={handleLogout}
-        className="bg-[#0C94B9] rounded-lg px-6 py-3 shadow-md"
-        style={{
-          shadowColor: "#000",
-          shadowOpacity: 0.25,
-          shadowOffset: { width: 2, height: 4 },
-          shadowRadius: 4,
+      {/* CV Kartları */}
+      <FlatList
+        data={templates}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 120, // tab bar alanına taşmasın
+          paddingHorizontal: 10,
         }}
-      >
-        <Text className="text-white text-[16px] font-semibold">Çıkış Yap</Text>
-      </Pressable>
+      />
 
+      {/* Önizleme Modal */}
+      <Modal visible={!!selected} animationType="fade" transparent>
+        <View className="flex-1 bg-black/85 justify-center items-center">
+          <Pressable
+            onPress={() => setSelected(null)}
+            className="flex-row items-center mt-4 bg-[#0C94B9] rounded-lg px-5 py-2 mb-5"
+          >
+            <Ionicons name="close" size={22} color="white" />
+            <Text className="text-white text-lg font-semibold ml-2">
+              Kapat
+            </Text>
+          </Pressable>
+
+          <PinchGestureHandler onGestureEvent={onPinchGesture}>
+            <Animated.View style={[animatedStyle]}>
+              <Image
+                source={selected?.image}
+                style={{
+                  width: width * 0.9,
+                  height: height * 0.7,
+                  borderRadius: 12,
+                }}
+                resizeMode="contain"
+              />
+            </Animated.View>
+          </PinchGestureHandler>
+
+          <Pressable className="mt-6 bg-[#0C94B9] rounded-lg px-8 py-4">
+            <Text className="text-white text-lg font-semibold">
+              Bu Temayı Kullan
+            </Text>
+          </Pressable>
+        </View>
+      </Modal>
     </View>
-
-    
   );
 }

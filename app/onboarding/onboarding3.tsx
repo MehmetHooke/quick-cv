@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import * as Animatable from "react-native-animatable";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
@@ -18,6 +19,11 @@ export default function Onboarding3() {
   const iconSize = width * 0.07;
   const buttonWidth = width * 0.42;
   const buttonHeight = height * 0.047;
+
+  const handleStart = async () => {
+  await AsyncStorage.setItem("onboardingSeen", "true");
+  router.replace("/(tabs)");
+};
 
   return (
     <ImageBackground
@@ -128,7 +134,7 @@ export default function Onboarding3() {
         {/* Başla butonu */}
         <Animatable.View animation="fadeInUp" delay={600}>
           <Pressable
-            onPress={() => router.replace("/(tabs)")}
+            onPress={handleStart}
             style={{
               alignSelf: "center",
               marginBottom: 40,

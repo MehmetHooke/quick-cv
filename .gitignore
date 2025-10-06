@@ -9,6 +9,12 @@ dist/
 web-build/
 expo-env.d.ts
 
+# Firebase gizli dosyalar
+firebaseConfig.js
+firebaseConfig.ts
+firebase.js
+firebaseConfig.json
+
 # Native
 .kotlin/
 *.orig.*

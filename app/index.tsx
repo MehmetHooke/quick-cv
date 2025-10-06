@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 
@@ -10,19 +10,30 @@ export default function Index() {
 
   useEffect(() => {
     const checkStatus = async () => {
-      const hasSeen = await AsyncStorage.getItem("hasSeenOnboarding");
+      try {
+        // ✅ 1. Onboarding durumu kontrol et
+        const seen = await AsyncStorage.getItem("onboardingSeen");
 
-      // Kullanıcı oturumu varsa → tablara
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          router.replace("/(tabs)");
-        } else if (hasSeen === "true") {
-          router.replace("/auth/login");
-        } else {
+        if (!seen) {
+          // onboarding hiç görülmediyse
           router.replace("/onboarding/onboarding1");
+          return;
         }
-        setLoading(false);
-      });
+
+        // ✅ 2. Kullanıcı oturumunu kontrol et
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (user) {
+            router.replace("/(tabs)");
+          } else {
+            router.replace("/auth/login");
+          }
+          setLoading(false);
+        });
+
+        return unsubscribe;
+      } catch (e) {
+        console.error(e);
+      }
     };
 
     checkStatus();

@@ -6,6 +6,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+
 const firebaseConfig = {
   apiKey: "AIzaSyC8dd1kpBGdjNHIsW45lLfPMH7jORMkXFk",
   authDomain: "quicklycv-be1bb.firebaseapp.com",
@@ -22,4 +23,5 @@ const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
 const db = getFirestore(app);
-export { app, auth, db };
+const storage = getStorage(app);
+export { app, auth, db,storage };
