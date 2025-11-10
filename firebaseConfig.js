@@ -8,20 +8,19 @@ import { getStorage } from "firebase/storage";
 
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC8dd1kpBGdjNHIsW45lLfPMH7jORMkXFk",
-  authDomain: "quicklycv-be1bb.firebaseapp.com",
-  projectId: "quicklycv-be1bb",
-  storageBucket: "quicklycv-be1bb.firebasestorage.app",
-  messagingSenderId: "839374465991",
-  appId: "1:839374465991:web:80fb88397cfb2a0d1e07e2",
-  measurementId: "G-M76LYQZE6L"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
 // 🔹 Firebase'i başlat
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-export { app, auth, db,storage };
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+export default app;

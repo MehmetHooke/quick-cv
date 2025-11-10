@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// app/index.tsx
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -6,40 +7,53 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 
 export default function Index() {
-  const [loading, setLoading] = useState(true);
+  const [checking, setChecking] = useState(true);
+  const routedRef = useRef(false); // çifte yönlendirmeyi engeller
 
   useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        // ✅ 1. Onboarding durumu kontrol et
-        const seen = await AsyncStorage.getItem("onboardingSeen");
+    let unsub: (() => void) | undefined;
 
+    (async () => {
+      try {
+        // 1) Onboarding
+        const seen = await AsyncStorage.getItem("onboardingSeen");
         if (!seen) {
-          // onboarding hiç görülmediyse
-          router.replace("/onboarding/onboarding1");
+          if (!routedRef.current) {
+            routedRef.current = true;
+            router.replace("/onboarding/onboarding1");
+          }
+          setChecking(false);
           return;
         }
 
-        // ✅ 2. Kullanıcı oturumunu kontrol et
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        // 2) Auth
+        unsub = onAuthStateChanged(auth, (user) => {
+          if (routedRef.current) return; // zaten yönlendirdiysen dur
+          routedRef.current = true;
+
           if (user) {
             router.replace("/(tabs)");
           } else {
             router.replace("/auth/login");
           }
-          setLoading(false);
+          setChecking(false);
         });
-
-        return unsubscribe;
       } catch (e) {
-        console.error(e);
+        console.error("Bootstrap error:", e);
+        if (!routedRef.current) {
+          routedRef.current = true;
+          router.replace("/auth/login");
+        }
+        setChecking(false);
       }
-    };
+    })();
 
-    checkStatus();
+    return () => {
+      if (unsub) unsub();
+    };
   }, []);
 
-  if (loading) {
+  if (checking) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
         <ActivityIndicator size="large" color="#0C94B9" />
