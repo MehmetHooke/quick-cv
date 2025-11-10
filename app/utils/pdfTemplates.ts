@@ -13,6 +13,27 @@ export const getPdfTemplate = (cv: any) => {
   }
 };
 
+// Ortak yardımcı: GPA metni üret (boşsa "")
+const gpaText = (e: any) => {
+  const raw =
+    e?.gpa ??
+    e?.average ??
+    e?.ortalama ??
+    e?.cgpa ??
+    e?.grade ??
+    null;
+
+  if (raw === null || raw === undefined || raw === "") return "";
+
+  // Sayıysa 2 ondalığa yuvarla
+  const val =
+    typeof raw === "number"
+      ? raw.toFixed(2)
+      : ("" + raw).trim();
+
+  return val ? ` - Ortalama: ${val}` : "";
+};
+
 // 🎨 CLASSIC TEMA
 const classicTemplate = (cv: any) => `
 <html>
@@ -33,7 +54,7 @@ const classicTemplate = (cv: any) => `
   <div class="section">
     <h2>Eğitim</h2>
     ${cv.education.map((e: any) => `
-      <p><strong>${e.school}</strong> - ${e.department} (${e.year})</p>
+      <p><strong>${e.school}</strong> - ${e.department} (${e.year})${gpaText(e)}</p>
     `).join("")}
   </div>
 
@@ -79,7 +100,7 @@ const modernTemplate = (cv: any) => `
   <div class="section">
     <h2>Eğitim</h2>
     ${cv.education.map((e: any) => `
-      <p><strong>${e.school}</strong> - ${e.department} (${e.year})</p>
+      <p><strong>${e.school}</strong> - ${e.department} (${e.year})${gpaText(e)}</p>
     `).join("")}
   </div>
 
@@ -121,7 +142,7 @@ const minimalTemplate = (cv: any) => `
 
   <h2>Eğitim</h2>
   ${cv.education.map((e: any) => `
-    <p>${e.school} - ${e.department} (${e.year})</p>
+    <p>${e.school} - ${e.department} (${e.year})${gpaText(e)}</p>
   `).join("")}
 
   <h2>Deneyimler</h2>

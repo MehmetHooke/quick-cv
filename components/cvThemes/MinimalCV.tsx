@@ -14,6 +14,8 @@ type Education = {
   school: string;
   department: string;
   year: string;
+  grade: number;
+
 };
 
 type Experience = {
@@ -21,6 +23,13 @@ type Experience = {
   position: string;
   startDate?: string;
   endDate?: string;
+};
+
+type Certificate = {
+  name: string;
+  issuer: string;
+  date: string;
+  description?: string;
 };
 
 type Skill = {
@@ -33,12 +42,13 @@ type CVData = {
   education: Education[];
   experiences: Experience[];
   skills: Skill[];
+  certificates?: Certificate[];
   about: string;
 };
 
 // 🔹 Ana bileşen
 export default function MinimalCV({ data }: { data: CVData }) {
-  const { personalInfo, education, experiences, skills, about } = data;
+  const { personalInfo, education, experiences,certificates, skills, about } = data;
 
   return (
     <View className="bg-white p-6 rounded-2xl border border-gray-200">
@@ -60,7 +70,7 @@ export default function MinimalCV({ data }: { data: CVData }) {
       <Text className="text-lg font-semibold text-gray-800 mb-1">Eğitim</Text>
       {education.map((e: Education, i: number) => (
         <Text key={i} className="text-gray-600 mb-1">
-          {e.school} - {e.department} ({e.year})
+          {e.school} - {e.department} ({e.year} {e.grade})
         </Text>
       ))}
 
@@ -72,6 +82,29 @@ export default function MinimalCV({ data }: { data: CVData }) {
           {e.company} - {e.position}
         </Text>
       ))}
+
+        <Text className="text-lg font-semibold text-cyan-700 mt-4 mb-1">
+  Sertifikalar
+</Text>
+
+{Array.isArray(certificates) && certificates.length > 0 ? (
+  certificates.map((c: Certificate, i: number) => (
+    <View key={i} className="mt-1">
+      <Text className="text-gray-800 font-semibold">
+        {c.name}
+      </Text>
+      <Text className="text-gray-600">
+        {c.issuer} — {c.date}
+      </Text>
+      {c.description ? (
+        <Text className="text-gray-700">{c.description}</Text>
+      ) : null}
+    </View>
+  ))
+) : (
+  <Text className="text-gray-500">Eklenmiş sertifika yok.</Text>
+)}
+
 
       <Text className="text-lg font-semibold text-gray-800 mt-4 mb-1">
         Yetenekler

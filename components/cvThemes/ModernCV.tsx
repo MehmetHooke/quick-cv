@@ -14,6 +14,8 @@ type Education = {
   school: string;
   department: string;
   year: string;
+  grade: number;
+
 };
 
 type Experience = {
@@ -21,6 +23,13 @@ type Experience = {
   position: string;
   startDate: string;
   endDate: string;
+};
+
+type Certificate = {
+  name: string;
+  issuer: string;
+  date: string;
+  description?: string;
 };
 
 type Skill = {
@@ -33,12 +42,13 @@ type CVData = {
   education: Education[];
   experiences: Experience[];
   skills: Skill[];
+  certificates?: Certificate[];
   about: string;
 };
 
 // 🔹 Ana bileşen
 export default function ModernCV({ data }: { data: CVData }) {
-  const { personalInfo, education, experiences, skills, about } = data;
+  const { personalInfo, education, experiences,certificates, skills, about } = data;
 
   return (
     <View className="bg-cyan-50 p-6 rounded-2xl shadow-lg">
@@ -59,9 +69,9 @@ export default function ModernCV({ data }: { data: CVData }) {
       <Text className="text-lg font-semibold text-cyan-800 mb-1">Eğitim</Text>
       {education.map((e: Education, i: number) => (
         <View key={i} className="border-l-4 border-cyan-500 pl-3 mb-2">
-          <Text className="text-gray-800 font-medium">
-            {e.school} - {e.department}
-          </Text>
+        <Text key={i} className="text-gray-600 mb-1">
+          {e.school} - {e.department} ({e.year} {e.grade})
+        </Text>
           <Text className="text-gray-600 text-sm">{e.year}</Text>
         </View>
       ))}
@@ -79,6 +89,30 @@ export default function ModernCV({ data }: { data: CVData }) {
           </Text>
         </View>
       ))}
+
+
+              <Text className="text-lg font-semibold text-cyan-700 mt-4 mb-1">
+        Sertifikalar
+      </Text>
+      
+      {Array.isArray(certificates) && certificates.length > 0 ? (
+        certificates.map((c: Certificate, i: number) => (
+          <View key={i} className="mt-1">
+            <Text className="text-gray-800 font-semibold">
+              {c.name}
+            </Text>
+            <Text className="text-gray-600">
+              {c.issuer} — {c.date}
+            </Text>
+            {c.description ? (
+              <Text className="text-gray-700">{c.description}</Text>
+            ) : null}
+          </View>
+        ))
+      ) : (
+        <Text className="text-gray-500">Eklenmiş sertifika yok.</Text>
+      )}
+      
 
       <Text className="text-lg font-semibold text-cyan-800 mt-4 mb-1">
         Yetenekler

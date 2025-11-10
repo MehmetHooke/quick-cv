@@ -14,11 +14,13 @@ type Education = {
   school: string;
   department: string;
   year: string;
+  grade: number;
 };
 
 type Experience = {
   company: string;
   position: string;
+  description: string;
   startDate: string;
   endDate: string;
 };
@@ -30,8 +32,9 @@ type Skill = {
 
 type Certificate = {
   name: string;
-  issuer?: string;
-  date?: string;
+  issuer: string;
+  date: string;
+  description?: string;
 };
 
 type CVData = {
@@ -69,7 +72,7 @@ export default function ClassicCV({ data }: { data: CVData }) {
       <Text className="text-lg font-semibold text-cyan-700 mb-1">Eğitim</Text>
       {education.map((e: Education, i: number) => (
         <Text key={i} className="text-gray-700">
-          {e.school} - {e.department} ({e.year})
+          {e.school} - {e.department} ({e.year} {e.grade}) 
         </Text>
       ))}
 
@@ -78,10 +81,32 @@ export default function ClassicCV({ data }: { data: CVData }) {
       </Text>
       {experiences.map((e: Experience, i: number) => (
         <Text key={i} className="text-gray-700">
-          {e.company} - {e.position} ({e.startDate} → {e.endDate})
+          {e.company} - {e.position} ({e.startDate} → {e.endDate}) 
+          {e.description}
         </Text>
+        
       ))}
+        <Text className="text-lg font-semibold text-cyan-700 mt-4 mb-1">
+          Sertifikalar
+        </Text>
 
+        {Array.isArray(certificates) && certificates.length > 0 ? (
+          certificates.map((c: Certificate, i: number) => (
+            <View key={i} className="mt-1">
+              <Text className="text-gray-800 font-semibold">
+                {c.name}
+              </Text>
+              <Text className="text-gray-600">
+                {c.issuer} — {c.date}
+              </Text>
+              {c.description ? (
+                <Text className="text-gray-700">{c.description}</Text>
+              ) : null}
+            </View>
+          ))
+        ) : (
+          <Text className="text-gray-500">Eklenmiş sertifika yok.</Text>
+        )}
       <Text className="text-lg font-semibold text-cyan-700 mt-4 mb-1">
         Yetenekler
       </Text>
