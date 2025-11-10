@@ -9,11 +9,9 @@ import {
   Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { PinchGestureHandler } from "react-native-gesture-handler";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-} from "react-native-reanimated";
+// 🔁 Yeni Gesture API
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, { useSharedValue, useAnimatedStyle } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { useCV } from "@/context/CVContext";
 import CVCard from "@/components/CVCard";
@@ -47,16 +45,46 @@ export default function HomeScreen() {
   const router = useRouter();
   const { updateCV } = useCV();
 
-  // 🧭 Modal kapandıktan sonra çalıştırılacak navigasyon fonksiyonunu tutar
+  // 🧭 Modal kapandıktan sonra çalıştırılacak navigasyon fonksiyonu
   const pendingNavRef = useRef<null | (() => void)>(null);
 
-  // 🔍 Zoom animasyonu
+  // 🔍 Görüntü boyutu (modal içi)
+  const IMG_W = width * 0.9;
+  const IMG_H = height * 0.7;
+
+  // 🔎 Zoom & Pan shared values
   const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-  const onPinchGesture = (event: any) => {
-    scale.value = event.nativeEvent.scale;
+  const savedScale = useSharedValue(1);
+
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const savedTranslateX = useSharedValue(0);
+  const savedTranslateY = useSharedValue(0);
+
+  // clamp (worklet)
+  const clamp = (v: number, min: number, max: number) => {
+    "worklet";
+    return Math.min(Math.max(v, min), max);
+  };
+
+  // Ölçeğe göre pan sınırı uygula (görüntü vizörden kaçmasın)
+  const boundTranslations = () => {
+    "worklet";
+    const maxX = (IMG_W * (scale.value - 1)) / 2;
+    const maxY = (IMG_H * (scale.value - 1)) / 2;
+    translateX.value = clamp(translateX.value, -maxX, maxX);
+    translateY.value = clamp(translateY.value, -maxY, maxY);
+  };
+
+  // Reset (çift tık / modal açılışı için)
+  const resetTransform = () => {
+    "worklet";
+    scale.value = 1;
+    savedScale.value = 1;
+    translateX.value = 0;
+    translateY.value = 0;
+    savedTranslateX.value = 0;
+    savedTranslateY.value = 0;
   };
 
   // 🔹 Karttaki "Temayı Seç" (modal açmadan direkt)
@@ -65,14 +93,64 @@ export default function HomeScreen() {
     router.push("/newcv/personal-info");
   };
 
-  // 🔹 Modal içindeki "Bu Temayı Kullan" (önce modalı kapa, sonra yönlendir)
+  // 🔹 Modal içindeki "Bu Temayı Kullan" (önce modal kapanacak → onDismiss sonra push)
   const handleUseThemeFromModal = () => {
     if (!selected) return;
     updateCV("theme", selected.id);
-    // Modal kapandıktan sonra çalışması için fonksiyonu sakla
     pendingNavRef.current = () => router.push("/newcv/personal-info");
-    setSelected(null); // modalı kapat → onDismiss tetiklenecek
+    setSelected(null); // modal kapanır → onDismiss tetiklenir
   };
+
+  // ✋ Pan jesti
+  const pan = Gesture.Pan()
+    .onBegin(() => {
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+    })
+    .onUpdate((e) => {
+      translateX.value = savedTranslateX.value + e.translationX;
+      translateY.value = savedTranslateY.value + e.translationY;
+      boundTranslations();
+    });
+
+  // 🤏 Pinch jesti (focal odaklı)
+  const pinch = Gesture.Pinch()
+    .onBegin(() => {
+      savedScale.value = scale.value;
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+    })
+    .onUpdate((e) => {
+      const nextScale = clamp(savedScale.value * e.scale, 1, 4); // 1x–4x
+      const cx = IMG_W / 2;
+      const cy = IMG_H / 2;
+      const dx = e.focalX - cx;
+      const dy = e.focalY - cy;
+
+      // Focal'e göre çeviri düzeltmesi
+      translateX.value = savedTranslateX.value + dx - dx * (nextScale / savedScale.value);
+      translateY.value = savedTranslateY.value + dy - dy * (nextScale / savedScale.value);
+
+      scale.value = nextScale;
+      boundTranslations();
+    });
+
+  // 👆 Double tap → reset
+  const doubleTap = Gesture.Tap().numberOfTaps(2).onEnd(() => {
+    resetTransform();
+  });
+
+  // 🤝 Aynı anda: pinch + pan + doubleTap
+  const composedGesture = Gesture.Simultaneous(pinch, pan, doubleTap);
+
+  // Animated style
+  const previewStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
 
   const renderItem = ({ item }: { item: (typeof templates)[0] }) => (
     <CVCard item={item} onPreview={() => setSelected(item)} onUse={handleUseThemeDirect} />
@@ -106,7 +184,12 @@ export default function HomeScreen() {
         visible={!!selected}
         animationType="fade"
         transparent
+        onShow={() => {
+          // Her açılışta transform’u sıfırla
+          resetTransform();
+        }}
         onDismiss={() => {
+          // Modal kapandıktan sonra gerekiyorsa yönlendir
           if (pendingNavRef.current) {
             pendingNavRef.current();
             pendingNavRef.current = null;
@@ -124,15 +207,14 @@ export default function HomeScreen() {
             </Pressable>
           </View>
 
-          <PinchGestureHandler onGestureEvent={onPinchGesture}>
-            <Animated.View style={[animatedStyle]}>
-              <Image
-                source={selected?.image}
-                style={{ width: width * 0.9, height: height * 0.7, borderRadius: 12 }}
-                resizeMode="contain"
-              />
-            </Animated.View>
-          </PinchGestureHandler>
+          {/* 🔍 Pinch + Pan + Double-Tap */}
+          <GestureDetector gesture={composedGesture}>
+            <Animated.Image
+              source={selected?.image}
+              style={[{ width: IMG_W, height: IMG_H, borderRadius: 12 }, previewStyle]}
+              resizeMode="contain"
+            />
+          </GestureDetector>
 
           <Pressable
             onPress={handleUseThemeFromModal}
