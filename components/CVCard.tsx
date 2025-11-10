@@ -3,9 +3,15 @@ import { View, Text, Image, Pressable, Dimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-export default function CVCard({ item, onPreview }: any) {
+type Props = {
+  item: { id: string; name: string; description: string; image: any };
+  onPreview?: (item: any) => void;
+  onUse?: (item: any) => void;   // ✅ yeni
+};
+
+export default function CVCard({ item, onPreview, onUse }: Props) {
   const cardWidth = width * 0.9;
-  const imageHeight = cardWidth * 1.4; // 🔹 Dikey A4 oranı (1:1.414)
+  const imageHeight = cardWidth * 1.4;
 
   return (
     <View
@@ -13,15 +19,11 @@ export default function CVCard({ item, onPreview }: any) {
       style={{ width: cardWidth, alignSelf: "center" }}
     >
       {/* CV Görseli */}
-      <Pressable onPress={() => onPreview(item)}>
+      <Pressable onPress={() => onPreview?.(item)}>
         <Image
           source={item.image}
-          style={{
-            width: "100%",
-            height: imageHeight,
-            borderRadius: 12,
-          }}
-          resizeMode="contain" // 🔹 Artık tamamı sığacak
+          style={{ width: "100%", height: imageHeight, borderRadius: 12 }}
+          resizeMode="contain"
         />
       </Pressable>
 
@@ -37,8 +39,10 @@ export default function CVCard({ item, onPreview }: any) {
 
       {/* Buton */}
       <Pressable
-        disabled
-        className="mt-4 bg-gray-300 rounded-lg py-2 px-4 self-center flex-row items-center"
+        onPress={() => onUse?.(item)}          // ✅ çalıştır
+        disabled={!onUse}                      // (opsiyonel güvenlik)
+        className={`mt-4 rounded-lg py-2 px-4 self-center flex-row items-center
+          ${onUse ? "bg-[#0C94B9]" : "bg-gray-300"}`}
       >
         <Text className="text-white text-[15px] font-semibold mr-2">
           Temayı Seç

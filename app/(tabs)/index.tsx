@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -43,30 +43,39 @@ const templates = [
 ];
 
 export default function HomeScreen() {
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<(typeof templates)[0] | null>(null);
   const router = useRouter();
   const { updateCV } = useCV();
+
+  // 🧭 Modal kapandıktan sonra çalıştırılacak navigasyon fonksiyonunu tutar
+  const pendingNavRef = useRef<null | (() => void)>(null);
 
   // 🔍 Zoom animasyonu
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
-
   const onPinchGesture = (event: any) => {
     scale.value = event.nativeEvent.scale;
   };
 
-  // 🔹 Tema seçimi
-  const handleUseTheme = () => {
+  // 🔹 Karttaki "Temayı Seç" (modal açmadan direkt)
+  const handleUseThemeDirect = (item: (typeof templates)[0]) => {
+    updateCV("theme", item.id);
+    router.push("/newcv/personal-info");
+  };
+
+  // 🔹 Modal içindeki "Bu Temayı Kullan" (önce modalı kapa, sonra yönlendir)
+  const handleUseThemeFromModal = () => {
     if (!selected) return;
     updateCV("theme", selected.id);
-    setSelected(null);
-    router.push("/newcv/personal-info"); // ✅ artık tip uyumlu
+    // Modal kapandıktan sonra çalışması için fonksiyonu sakla
+    pendingNavRef.current = () => router.push("/newcv/personal-info");
+    setSelected(null); // modalı kapat → onDismiss tetiklenecek
   };
 
   const renderItem = ({ item }: { item: (typeof templates)[0] }) => (
-    <CVCard item={item} onPreview={() => setSelected(item)} />
+    <CVCard item={item} onPreview={() => setSelected(item)} onUse={handleUseThemeDirect} />
   );
 
   return (
@@ -89,14 +98,21 @@ export default function HomeScreen() {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: 120,
-          paddingHorizontal: 10,
-        }}
+        contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}
       />
 
       {/* Önizleme Modal */}
-      <Modal visible={!!selected} animationType="fade" transparent>
+      <Modal
+        visible={!!selected}
+        animationType="fade"
+        transparent
+        onDismiss={() => {
+          if (pendingNavRef.current) {
+            pendingNavRef.current();
+            pendingNavRef.current = null;
+          }
+        }}
+      >
         <View className="flex-1 bg-black/85 justify-center items-center px-5">
           <View className="w-full items-end mb-4">
             <Pressable
@@ -104,9 +120,7 @@ export default function HomeScreen() {
               className="flex-row items-center bg-[#0C94B9] rounded-lg px-5 py-2"
             >
               <Ionicons name="close" size={22} color="white" />
-              <Text className="text-white text-lg font-semibold ml-2">
-                Kapat
-              </Text>
+              <Text className="text-white text-lg font-semibold ml-2">Kapat</Text>
             </Pressable>
           </View>
 
@@ -114,23 +128,18 @@ export default function HomeScreen() {
             <Animated.View style={[animatedStyle]}>
               <Image
                 source={selected?.image}
-                style={{
-                  width: width * 0.9,
-                  height: height * 0.7,
-                  borderRadius: 12,
-                }}
+                style={{ width: width * 0.9, height: height * 0.7, borderRadius: 12 }}
                 resizeMode="contain"
               />
             </Animated.View>
           </PinchGestureHandler>
 
           <Pressable
-            onPress={handleUseTheme}
+            onPress={handleUseThemeFromModal}
             className="mt-6 bg-[#0C94B9] rounded-lg px-8 py-4"
+            disabled={!selected}
           >
-            <Text className="text-white text-lg font-semibold">
-              Bu Temayı Kullan
-            </Text>
+            <Text className="text-white text-lg font-semibold">Bu Temayı Kullan</Text>
           </Pressable>
         </View>
       </Modal>
