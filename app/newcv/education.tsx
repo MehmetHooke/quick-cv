@@ -67,7 +67,7 @@ export default function EducationScreen() {
       }
 
       if (!cvData.id) {
-        Alert.alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyin.");
+        Alert.alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyiniz.");
         setLoading(false);
         return;
       }
