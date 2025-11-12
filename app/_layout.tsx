@@ -6,6 +6,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "@/app/global.css";
 import { CVProvider } from "@/context/CVContext";
 
+import { Buffer } from "buffer";
+(global as any).Buffer = Buffer;
+
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

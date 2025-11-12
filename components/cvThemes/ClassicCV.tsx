@@ -1,7 +1,9 @@
+// app/components/cvThemes/ClassicCV.tsx
 import React from "react";
 import { View, Text, Image } from "react-native";
+import { tokens } from "@/constants/tokens";
 
-// 🔹 Tip tanımları
+// ---- Tipler
 type PersonalInfo = {
   firstName: string;
   lastName: string;
@@ -14,15 +16,15 @@ type Education = {
   school: string;
   department: string;
   year: string;
-  grade: number;
+  grade?: number | string; // opsiyonel/serbest
 };
 
 type Experience = {
   company: string;
   position: string;
-  description: string;
-  startDate: string;
-  endDate: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
 };
 
 type Skill = {
@@ -32,8 +34,8 @@ type Skill = {
 
 type Certificate = {
   name: string;
-  issuer: string;
-  date: string;
+  issuer?: string;
+  date?: string;
   description?: string;
 };
 
@@ -43,85 +45,218 @@ type CVData = {
   experiences: Experience[];
   skills: Skill[];
   certificates?: Certificate[];
-  about: string;
+  about?: string;
 };
 
-// 🔹 Bileşen tipi
+// ---- Yardımcılar
+const hasArray = (arr?: unknown[]) => Array.isArray(arr) && arr.length > 0;
+const safeText = (v?: string | number | null) => (v === undefined || v === null ? "" : String(v));
+
+// ---- Bileşen
 export default function ClassicCV({ data }: { data: CVData }) {
-  const { personalInfo, education, experiences, skills, certificates, about } =
-    data;
+  const { personalInfo, education, experiences, skills, certificates, about } = data;
 
   return (
-    <View className="bg-white p-6 rounded-2xl border border-gray-300">
-      <View className="flex-row items-center mb-5">
-        {personalInfo.photo && (
+    <View
+      // A4 canvas içinde dış padding vermeyelim; iç düzeni burada yapalım
+      style={{
+        flex: 1,
+        backgroundColor: "#ffffff",
+        paddingHorizontal: tokens.spacing.xl,
+        paddingVertical: tokens.spacing.lg,
+      }}
+    >
+      {/* Üst Başlık */}
+      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: tokens.spacing.lg }}>
+        {personalInfo.photo ? (
           <Image
             source={{ uri: personalInfo.photo }}
-            className="w-20 h-20 rounded-full mr-4"
+            style={{ width: 72, height: 72, borderRadius: 36, marginRight: tokens.spacing.md }}
           />
-        )}
-        <View>
-          <Text className="text-xl font-bold text-gray-800">
+        ) : null}
+
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontSize: tokens.fonts.h1,
+              fontWeight: "700",
+              color: tokens.colors.text,
+            }}
+            numberOfLines={1}
+          >
             {personalInfo.firstName} {personalInfo.lastName}
           </Text>
-          <Text className="text-gray-500">{personalInfo.email}</Text>
-          <Text className="text-gray-500">{personalInfo.phone}</Text>
+          <Text
+            style={{ color: tokens.colors.subtext, marginTop: 2, fontSize: tokens.fonts.body }}
+            numberOfLines={1}
+          >
+            {personalInfo.email}
+          </Text>
+          <Text
+            style={{ color: tokens.colors.subtext, marginTop: 2, fontSize: tokens.fonts.body }}
+            numberOfLines={1}
+          >
+            {personalInfo.phone}
+          </Text>
         </View>
       </View>
 
-      <Text className="text-lg font-semibold text-cyan-700 mb-1">Eğitim</Text>
-      {education.map((e: Education, i: number) => (
-        <Text key={i} className="text-gray-700">
-          {e.school} - {e.department} ({e.year} {e.grade}) 
-        </Text>
-      ))}
+      {/* İnce çizgi */}
+      <View
+        style={{
+          height: tokens.stroke.thin,
+          backgroundColor: tokens.colors.line,
+          marginBottom: tokens.spacing.lg,
+        }}
+      />
 
-      <Text className="text-lg font-semibold text-cyan-700 mt-4 mb-1">
-        Deneyim
-      </Text>
-      {experiences.map((e: Experience, i: number) => (
-        <Text key={i} className="text-gray-700">
-          {e.company} - {e.position} ({e.startDate} → {e.endDate}) 
-          {e.description}
-        </Text>
-        
-      ))}
-        <Text className="text-lg font-semibold text-cyan-700 mt-4 mb-1">
-          Sertifikalar
-        </Text>
+      {/* Eğitim */}
+      {hasArray(education) && (
+        <View style={{ marginBottom: tokens.spacing.lg }}>
+          <Text
+            style={{
+              color: tokens.colors.primary,
+              fontWeight: "700",
+              fontSize: tokens.fonts.h2,
+              marginBottom: tokens.spacing.sm,
+            }}
+          >
+            Eğitim
+          </Text>
 
-        {Array.isArray(certificates) && certificates.length > 0 ? (
-          certificates.map((c: Certificate, i: number) => (
-            <View key={i} className="mt-1">
-              <Text className="text-gray-800 font-semibold">
-                {c.name}
+          {education.map((e, i) => {
+            const grade =
+              e.grade !== undefined && e.grade !== null && safeText(e.grade) !== ""
+                ? ` • Ortalama: ${safeText(e.grade)}`
+                : "";
+            return (
+              <Text
+                key={`edu-${i}`}
+                style={{ color: tokens.colors.text, fontSize: tokens.fonts.body, marginBottom: 4 }}
+                numberOfLines={2}
+              >
+                {safeText(e.school)} — {safeText(e.department)} ({safeText(e.year)}){grade}
               </Text>
-              <Text className="text-gray-600">
-                {c.issuer} — {c.date}
+            );
+          })}
+        </View>
+      )}
+
+      {/* Deneyim */}
+      {hasArray(experiences) && (
+        <View style={{ marginBottom: tokens.spacing.lg }}>
+          <Text
+            style={{
+              color: tokens.colors.primary,
+              fontWeight: "700",
+              fontSize: tokens.fonts.h2,
+              marginBottom: tokens.spacing.sm,
+            }}
+          >
+            Deneyim
+          </Text>
+          {experiences.map((e, i) => {
+            const date =
+              e.startDate || e.endDate ? ` (${safeText(e.startDate)} → ${safeText(e.endDate)})` : "";
+            return (
+              <View key={`exp-${i}`} style={{ marginBottom: tokens.spacing.xs }}>
+                <Text style={{ color: tokens.colors.text, fontSize: tokens.fonts.body }}>
+                  {safeText(e.company)} — {safeText(e.position)}
+                  {date}
+                </Text>
+                {e.description ? (
+                  <Text
+                    style={{
+                      color: tokens.colors.subtext,
+                      fontSize: tokens.fonts.small,
+                      marginTop: 2,
+                    }}
+                    numberOfLines={2}
+                  >
+                    {e.description}
+                  </Text>
+                ) : null}
+              </View>
+            );
+          })}
+        </View>
+      )}
+
+      {/* Sertifikalar */}
+      {hasArray(certificates) && (
+        <View style={{ marginBottom: tokens.spacing.lg }}>
+          <Text
+            style={{
+              color: tokens.colors.primary,
+              fontWeight: "700",
+              fontSize: tokens.fonts.h2,
+              marginBottom: tokens.spacing.sm,
+            }}
+          >
+            Sertifikalar
+          </Text>
+          {certificates!.map((c, i) => (
+            <View key={`cert-${i}`} style={{ marginBottom: tokens.spacing.xs }}>
+              <Text style={{ color: tokens.colors.text, fontSize: tokens.fonts.body, fontWeight: "600" }}>
+                {safeText(c.name)}
               </Text>
+              {(c.issuer || c.date) && (
+                <Text style={{ color: tokens.colors.subtext, fontSize: tokens.fonts.small }}>
+                  {safeText(c.issuer)}
+                  {c.issuer && c.date ? " — " : ""}
+                  {safeText(c.date)}
+                </Text>
+              )}
               {c.description ? (
-                <Text className="text-gray-700">{c.description}</Text>
+                <Text style={{ color: tokens.colors.subtext, fontSize: tokens.fonts.small, marginTop: 2 }}>
+                  {c.description}
+                </Text>
               ) : null}
             </View>
-          ))
-        ) : (
-          <Text className="text-gray-500">Eklenmiş sertifika yok.</Text>
-        )}
-      <Text className="text-lg font-semibold text-cyan-700 mt-4 mb-1">
-        Yetenekler
-      </Text>
-      <Text className="text-gray-700">
-        {skills.map((s: Skill) => s.name).join(", ")}
-      </Text>
+          ))}
+        </View>
+      )}
 
-      {about && (
-        <>
-          <Text className="text-lg font-semibold text-cyan-700 mt-4 mb-1">
+      {/* Yetenekler */}
+      {hasArray(skills) && (
+        <View style={{ marginBottom: tokens.spacing.lg }}>
+          <Text
+            style={{
+              color: tokens.colors.primary,
+              fontWeight: "700",
+              fontSize: tokens.fonts.h2,
+              marginBottom: tokens.spacing.sm,
+            }}
+          >
+            Yetenekler
+          </Text>
+          <Text style={{ color: tokens.colors.text, fontSize: tokens.fonts.body }}>
+            {skills.map((s) => s.name).join(", ")}
+          </Text>
+        </View>
+      )}
+
+      {/* Hakkımda */}
+      {about ? (
+        <View>
+          <Text
+            style={{
+              color: tokens.colors.primary,
+              fontWeight: "700",
+              fontSize: tokens.fonts.h2,
+              marginBottom: tokens.spacing.sm,
+            }}
+          >
             Hakkımda
           </Text>
-          <Text className="text-gray-700">{about}</Text>
-        </>
-      )}
+          <Text
+            style={{ color: tokens.colors.text, fontSize: tokens.fonts.body }}
+            numberOfLines={6} // tek sayfada taşmayı azalt
+          >
+            {about}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }

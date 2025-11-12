@@ -1,35 +1,31 @@
+// app/newcv/preview.tsx
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useCV } from "@/context/CVContext";
 import { db, auth } from "@/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
-// 🔹 Tema bileşenleri
+// Tema bileşenleri
 import ClassicCV from "@/components/cvThemes/ClassicCV";
 import ModernCV from "@/components/cvThemes/ModernCV";
 import MinimalCV from "@/components/cvThemes/MinimalCV";
 
-// 📄 PDF için
-import * as Print from "expo-print";
-import * as FileSystem from "expo-file-system/legacy";
+// Paylaşım ve render istemcisi
 import * as Sharing from "expo-sharing";
+import { renderPdf, type Theme } from "@/app/lib/renderClient";
 
-// 📄 PDF HTML şablonları
-import { getPdfTemplate } from "../utils/pdfTemplates";
+// --------- Sabitler ---------
+const A4_RATIO = 210 / 297; // sadece önizleme oranı
+const ENDPOINT = "https://cv-render-service-jrxoy76crq-ey.a.run.app"; // ← kendi Cloud Run URL’in
+const API_KEY  = "MY_API_KEY"; // ← kendi gizli anahtarın
 
 export default function PreviewScreen() {
   const router = useRouter();
   const { cvData } = useCV();
   const [cv, setCv] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     const fetchCV = async () => {
@@ -40,8 +36,7 @@ export default function PreviewScreen() {
           router.push("/(tabs)");
           return;
         }
-
-        if (!cvData.id) {
+        if (!cvData?.id) {
           Alert.alert("Hata", "CV kimliği bulunamadı. Lütfen yeniden deneyin.");
           router.push("/(tabs)");
           return;
@@ -49,12 +44,8 @@ export default function PreviewScreen() {
 
         const docRef = doc(db, "users", user.uid, "cvs", cvData.id);
         const snapshot = await getDoc(docRef);
-
-        if (snapshot.exists()) {
-          setCv(snapshot.data());
-        } else {
-          Alert.alert("Hata", "CV verisi bulunamadı.");
-        }
+        if (snapshot.exists()) setCv(snapshot.data());
+        else Alert.alert("Hata", "CV verisi bulunamadı.");
       } catch (error) {
         console.error("CV çekme hatası:", error);
         Alert.alert("Hata", "CV verisi alınırken bir hata oluştu.");
@@ -62,60 +53,50 @@ export default function PreviewScreen() {
         setLoading(false);
       }
     };
-
     fetchCV();
   }, []);
 
-  // 🔹 PDF oluşturma fonksiyonu
   const handleGeneratePDF = async () => {
-    if (!cv) return;
-
+    if (!cv || generating) return;
+    setGenerating(true);
     try {
-      const html = getPdfTemplate(cv); // 🔥 Tema bazlı PDF tasarımı
-
-      const { uri } = await Print.printToFileAsync({ html });
-
-      // 🔧 TS tipi genişletme için güvenli fallback
-      // @ts-ignore
-      const dir = FileSystem.documentDirectory || FileSystem.cacheDirectory || "";
-      const fileName = `${dir}${cv.personalInfo.firstName}_${cv.personalInfo.lastName}_CV.pdf`;
-
-      // @ts-ignore
-      await FileSystem.moveAsync({
-        from: uri,
-        to: fileName,
+      const theme = (cv.theme ?? "classic") as Theme;
+      const fileUri = await renderPdf({
+        endpoint: ENDPOINT,
+        apiKey: API_KEY,
+        data: cv,     // Firestore’dan gelen CV objesi
+        theme
       });
 
-      Alert.alert("Başarılı", "CV başarıyla PDF olarak kaydedildi.");
-
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileName);
+        await Sharing.shareAsync(fileUri, { mimeType: "application/pdf", dialogTitle: "PDF Paylaş" });
       } else {
-        Alert.alert("Bilgi", "Bu cihazda paylaşım desteklenmiyor.");
+        Alert.alert("PDF Hazır", fileUri);
       }
-    } catch (error) {
-      console.error("PDF oluşturma hatası:", error);
-      Alert.alert("Hata", "PDF oluşturulurken bir hata oluştu.");
+    } catch (e: any) {
+      console.error("Render error:", e);
+      if (e.message === "ERR_401") {
+        Alert.alert("Hata", "Uygulama anahtarı geçersiz.");
+      } else if (e.name === "AbortError") {
+        Alert.alert("Zaman Aşımı", "Sunucu yanıt vermedi (30 sn).");
+      } else {
+        Alert.alert("Hata", `Render başarısız: ${e?.message ?? e}`);
+      }
+    } finally {
+      setGenerating(false);
     }
   };
 
-  // 🔹 Tema seçimine göre uygun bileşeni getir
   const renderCV = () => {
     if (!cv) return null;
-
     switch (cv.theme) {
-      case "classic":
-        return <ClassicCV data={cv} />;
-      case "modern":
-        return <ModernCV data={cv} />;
-      case "minimal":
-        return <MinimalCV data={cv} />;
+      case "classic": return <ClassicCV data={cv} />;
+      case "modern":  return <ModernCV data={cv} />;
+      case "minimal": return <MinimalCV data={cv} />;
       default:
         return (
-          <View className="items-center justify-center py-20">
-            <Text className="text-gray-500">
-              Tema seçilmemiş veya bulunamadı.
-            </Text>
+          <View className="items-center justify-center">
+            <Text className="text-gray-500">Tema seçilmemiş veya bulunamadı.</Text>
           </View>
         );
     }
@@ -132,32 +113,41 @@ export default function PreviewScreen() {
 
   return (
     <View className="flex-1 bg-white px-5 py-6 mt-5">
-      <Text className="text-2xl font-bold text-cyan-700 text-center mb-4">
-        CV Önizlemesi
-      </Text>
+      <Text className="text-2xl font-bold text-cyan-700 text-center mb-4">CV Önizlemesi</Text>
 
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 60 }}
+      {/* A4 oranlı tek sayfa önizleme alanı */}
+      <View
+        style={{
+          width: "100%",
+          aspectRatio: A4_RATIO,
+          backgroundColor: "#ffffff",
+          borderRadius: 12,
+          overflow: "hidden",
+        }}
       >
         {renderCV()}
-      </ScrollView>
+      </View>
 
-      {/* 🔹 Alt butonlar */}
-      <View className="flex-row justify-around mt-4">
+      {/* Alt butonlar */}
+      <View className="flex-row justify-around mt-6">
         <TouchableOpacity
-          className="bg-cyan-600 px-5 py-3 rounded-xl"
+          disabled={generating}
+          className={`px-5 py-3 rounded-xl ${generating ? "bg-cyan-400" : "bg-cyan-600"}`}
           onPress={handleGeneratePDF}
         >
-          <Text className="text-white font-semibold">PDF İndir</Text>
+          <Text className="text-white font-semibold">
+            {generating ? "Hazırlanıyor..." : "PDF İndir"}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          className="bg-cyan-600 px-5 py-3 rounded-xl"
+          disabled={generating}
+          className={`px-5 py-3 rounded-xl ${generating ? "bg-cyan-400" : "bg-cyan-600"}`}
           onPress={handleGeneratePDF}
         >
-          <Text className="text-white font-semibold">Paylaş</Text>
+          <Text className="text-white font-semibold">
+            {generating ? "Hazırlanıyor..." : "Paylaş"}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
