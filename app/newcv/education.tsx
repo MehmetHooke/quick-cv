@@ -1,17 +1,16 @@
+import { useCV } from "@/context/CVContext";
+import { auth, db } from "@/firebaseConfig";
+import { useRouter } from "expo-router";
+import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
-  Alert,
-  ScrollView,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useCV } from "@/context/CVContext";
-import { db, auth } from "@/firebaseConfig";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 
 type EducationItem = {
   school: string;
@@ -25,7 +24,7 @@ export default function EducationScreen() {
   const { cvData, updateCV } = useCV();
 
   const [educationList, setEducationList] = useState<EducationItem[]>(
-    cvData.education || []
+    (cvData.education as EducationItem[]) || []
   );
 
   const [newEdu, setNewEdu] = useState<EducationItem>({
@@ -36,16 +35,35 @@ export default function EducationScreen() {
   });
 
   const [loading, setLoading] = useState(false);
+  const placeholderColor = "#9CA3AF";
 
   // 🎓 Yeni eğitim ekle
   const addEducation = () => {
-    if (!newEdu.school || !newEdu.department || !newEdu.year) {
-      Alert.alert("Eksik bilgi", "Lütfen gerekli alanları doldurun.");
+    if (!newEdu.school.trim() || !newEdu.department.trim() || !newEdu.year.trim()) {
+      Alert.alert("Eksik bilgi", "Lütfen okul adı, bölüm ve mezuniyet yılını doldurun.");
       return;
     }
-    const updatedList = [...educationList, newEdu];
-    setEducationList(updatedList);
-    setNewEdu({ school: "", department: "", year: "", grade: "" });
+
+    const cleaned: EducationItem = {
+      school: newEdu.school.trim(),
+      department: newEdu.department.trim(),
+      year: newEdu.year.trim(),
+      grade: newEdu.grade?.trim() || "",
+    };
+
+    setEducationList((prev) => [...prev, cleaned]);
+
+    setNewEdu({
+      school: "",
+      department: "",
+      year: "",
+      grade: "",
+    });
+  };
+
+  // ❌ Eğitim kaydı sil
+  const removeEducation = (index: number) => {
+    setEducationList((prev) => prev.filter((_, i) => i !== index));
   };
 
   // 💾 Kaydet ve devam et
@@ -80,7 +98,7 @@ export default function EducationScreen() {
       });
 
       setLoading(false);
-      router.push("/newcv/experience"); // sonraki sayfa (henüz oluşturmadık)
+      router.push("/newcv/experience"); // sonraki sayfa
     } catch (error) {
       console.error("Eğitim Kaydetme Hatası:", error);
       Alert.alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
@@ -97,64 +115,89 @@ export default function EducationScreen() {
         <View className="h-1 w-1/3 bg-cyan-500 rounded-full" />
       </View>
 
-      {/* Form Alanları */}
-      <TextInput
-        placeholder="Okul Adı"
-        value={newEdu.school}
-        onChangeText={(t) => setNewEdu({ ...newEdu, school: t })}
-        className="border border-gray-300 rounded-xl p-3 mb-3"
-      />
-      <TextInput
-        placeholder="Bölüm"
-        value={newEdu.department}
-        onChangeText={(t) => setNewEdu({ ...newEdu, department: t })}
-        className="border border-gray-300 rounded-xl p-3 mb-3"
-      />
-      <TextInput
-        placeholder="Mezuniyet Yılı"
-        value={newEdu.year}
-        onChangeText={(t) => setNewEdu({ ...newEdu, year: t })}
-        className="border border-gray-300 rounded-xl p-3 mb-3"
-      />
-      <TextInput
-        placeholder="Ortalama (opsiyonel)"
-        value={newEdu.grade}
-        onChangeText={(t) => setNewEdu({ ...newEdu, grade: t })}
-        className="border border-gray-300 rounded-xl p-3 mb-5"
-      />
+      {/* Açıklama */}
+      <Text className="text-sm text-gray-700 mb-4">
+        Mezun olduğun veya devam ettiğin okulları ekleyebilirsin. Birden fazla
+        eğitim bilgisi eklemek serbest.
+      </Text>
 
-      <TouchableOpacity
-        onPress={addEducation}
-        className="bg-cyan-700 py-3 rounded-xl mb-6"
-      >
-        <Text className="text-white text-center font-semibold">
-          Yeni Eğitim Ekle
+      {/* Yeni eğitim ekleme alanı */}
+      <View className="mb-6">
+        <Text className="text-sm text-gray-700 mb-2">
+          Yeni eğitim eklemek istiyorum
         </Text>
-      </TouchableOpacity>
 
-      {/* Liste */}
-      {educationList.length > 0 && (
-        <FlatList
-          data={educationList}
-          keyExtractor={(_, i) => i.toString()}
-          renderItem={({ item }) => (
-            <View className="border border-gray-300 rounded-xl p-3 mb-3">
-              <Text className="font-semibold text-cyan-700">
-                {item.school} - {item.department}
-              </Text>
-              <Text className="text-gray-600 text-sm">
-                Mezuniyet: {item.year}{" "}
-                {item.grade ? `| Ortalama: ${item.grade}` : ""}
-              </Text>
-            </View>
-          )}
+        <TextInput
+          placeholder="Okul Adı"
+          placeholderTextColor={placeholderColor}
+          value={newEdu.school || ""}
+          onChangeText={(t) => setNewEdu({ ...newEdu, school: t })}
+          className="border border-gray-300 rounded-xl p-3 mb-3 text-sm"
         />
-      )}
 
+        <TextInput
+          placeholder="Bölüm"
+          placeholderTextColor={placeholderColor}
+          value={newEdu.department || ""}
+          onChangeText={(t) => setNewEdu({ ...newEdu, department: t })}
+          className="border border-gray-300 rounded-xl p-3 mb-3 text-sm"
+        />
+
+        <TextInput
+          placeholder="Mezuniyet Yılı (Örn: 2024)"
+          placeholderTextColor={placeholderColor}
+          value={newEdu.year || ""}
+          onChangeText={(t) => setNewEdu({ ...newEdu, year: t })}
+          className="border border-gray-300 rounded-xl p-3 mb-3 text-sm"
+        />
+
+        <TextInput
+          placeholder="Ortalama (Opsiyonel)"
+          placeholderTextColor={placeholderColor}
+          value={newEdu.grade || ""}
+          onChangeText={(t) => setNewEdu({ ...newEdu, grade: t })}
+          className="border border-gray-300 rounded-xl p-3 mb-4 text-sm"
+        />
+
+        <TouchableOpacity
+          onPress={addEducation}
+          className="self-start px-4 py-3 rounded-xl bg-cyan-700"
+        >
+          <Text className="text-white text-sm font-semibold">
+            Yeni Eğitim Ekle
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Mevcut eğitimlerin listesi (dil sayfası stilinde) */}
+      {educationList.map((item, index) => (
+        <View
+          key={`${item.school}-${item.department}-${index}`}
+          className="flex-row items-center justify-between mb-2 bg-gray-100 rounded-xl px-3 py-2"
+        >
+          <View className="flex-1 mr-2">
+            <Text className="text-sm font-semibold text-gray-800">
+              {item.school} - {item.department}
+            </Text>
+            <Text className="text-xs text-gray-600">
+              Mezuniyet: {item.year}
+              {item.grade ? `  |  Ortalama: ${item.grade}` : ""}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => removeEducation(index)}
+            className="px-3 py-1 rounded-full bg-red-100"
+          >
+            <Text className="text-xs font-semibold text-red-600">Sil</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+
+      {/* Devam Et Butonu */}
       <TouchableOpacity
         disabled={loading}
         onPress={handleNext}
-        className={`py-4 rounded-2xl mt-4 ${
+        className={`py-4 rounded-2xl mt-6 ${
           loading ? "bg-cyan-400" : "bg-cyan-600"
         }`}
       >

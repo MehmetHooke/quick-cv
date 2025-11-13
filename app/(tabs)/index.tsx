@@ -1,20 +1,20 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
 import {
-  View,
-  Text,
+  Dimensions,
   FlatList,
+  Image,
   Modal,
   Pressable,
-  Dimensions,
-  Image,
+  Text,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 // 🔁 Yeni Gesture API
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { useSharedValue, useAnimatedStyle } from "react-native-reanimated";
-import { useRouter } from "expo-router";
-import { useCV } from "@/context/CVContext";
 import CVCard from "@/components/CVCard";
+import { useCV } from "@/context/CVContext";
+import { useRouter } from "expo-router";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 
 const { width, height } = Dimensions.get("window");
 
@@ -28,9 +28,9 @@ const templates = [
   },
   {
     id: "modern",
-    name: "Elegant Gray",
+    name: "Modern Minimalist CV",
     description: "Kurumsal ve sade bir tasarım isteyenler için.",
-    image: require("@/assets/templates/elegant-gray.png"),
+    image: require("@/assets/templates/minimalistCv1.png"),
   },
   {
     id: "minimal",
@@ -89,14 +89,14 @@ export default function HomeScreen() {
 
   // 🔹 Karttaki "Temayı Seç" (modal açmadan direkt)
   const handleUseThemeDirect = (item: (typeof templates)[0]) => {
-    updateCV("theme", item.id);
+    updateCV("theme", item.id as any);
     router.push("/newcv/personal-info");
   };
 
   // 🔹 Modal içindeki "Bu Temayı Kullan" (önce modal kapanacak → onDismiss sonra push)
   const handleUseThemeFromModal = () => {
     if (!selected) return;
-    updateCV("theme", selected.id);
+    updateCV("theme", selected.id as any);
     pendingNavRef.current = () => router.push("/newcv/personal-info");
     setSelected(null); // modal kapanır → onDismiss tetiklenir
   };

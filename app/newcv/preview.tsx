@@ -1,19 +1,19 @@
 // app/newcv/preview.tsx
-import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
-import { useRouter } from "expo-router";
 import { useCV } from "@/context/CVContext";
-import { db, auth } from "@/firebaseConfig";
+import { auth, db } from "@/firebaseConfig";
+import { useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from "react-native";
 
 // Tema bileşenleri
 import ClassicCV from "@/components/cvThemes/ClassicCV";
-import ModernCV from "@/components/cvThemes/ModernCV";
 import MinimalCV from "@/components/cvThemes/MinimalCV";
+import ModernCV from "@/components/cvThemes/ModernCV";
 
 // Paylaşım ve render istemcisi
-import * as Sharing from "expo-sharing";
 import { renderPdf, type Theme } from "@/app/lib/renderClient";
+import * as Sharing from "expo-sharing";
 
 // --------- Sabitler ---------
 const A4_RATIO = 210 / 297; // sadece önizleme oranı
@@ -57,35 +57,57 @@ export default function PreviewScreen() {
   }, []);
 
   const handleGeneratePDF = async () => {
-    if (!cv || generating) return;
-    setGenerating(true);
-    try {
-      const theme = (cv.theme ?? "classic") as Theme;
-      const fileUri = await renderPdf({
-        endpoint: ENDPOINT,
-        apiKey: API_KEY,
-        data: cv,     // Firestore’dan gelen CV objesi
-        theme
-      });
+  if (!cv || generating) return;
+  setGenerating(true);
 
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri, { mimeType: "application/pdf", dialogTitle: "PDF Paylaş" });
-      } else {
-        Alert.alert("PDF Hazır", fileUri);
-      }
-    } catch (e: any) {
-      console.error("Render error:", e);
-      if (e.message === "ERR_401") {
-        Alert.alert("Hata", "Uygulama anahtarı geçersiz.");
-      } else if (e.name === "AbortError") {
-        Alert.alert("Zaman Aşımı", "Sunucu yanıt vermedi (30 sn).");
-      } else {
-        Alert.alert("Hata", `Render başarısız: ${e?.message ?? e}`);
-      }
-    } finally {
-      setGenerating(false);
+  try {
+    const theme = (cv.theme ?? "classic") as Theme;
+
+    // 🔧 Backend'in beklediği veri formatına map'leme
+    const serverData = {
+      personalInfo: {
+        ...cv.personalInfo,
+        // modern.html.ts'te kullandığımız alanlara fallback:
+        title: cv.personalInfo?.headline ?? cv.personalInfo?.title ?? "",
+        city: cv.personalInfo?.city ?? cv.personalInfo?.location ?? "",
+      },
+      education: cv.education ?? [],
+      experiences: cv.experiences ?? [],
+      certificates: cv.certificates ?? [],
+      skills: cv.skills ?? [],
+      languages: cv.languages ?? [],
+      about: cv.about ?? "",
+    };
+
+    const fileUri = await renderPdf({
+      endpoint: ENDPOINT,
+      apiKey: API_KEY,
+      data: serverData,   // ✅ artık temiz ve backend uyumlu
+      theme,              // "classic" | "modern" | "minimal"
+    });
+
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(fileUri, {
+        mimeType: "application/pdf",
+        dialogTitle: "PDF Paylaş",
+      });
+    } else {
+      Alert.alert("PDF Hazır", fileUri);
     }
-  };
+  } catch (e: any) {
+    console.error("Render error:", e);
+    if (e.message === "ERR_401") {
+      Alert.alert("Hata", "Uygulama anahtarı geçersiz.");
+    } else if (e.name === "AbortError") {
+      Alert.alert("Zaman Aşımı", "Sunucu yanıt vermedi (30 sn).");
+    } else {
+      Alert.alert("Hata", `Render başarısız: ${e?.message ?? e}`);
+    }
+  } finally {
+    setGenerating(false);
+  }
+};
+
 
   const renderCV = () => {
     if (!cv) return null;

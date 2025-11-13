@@ -1,40 +1,65 @@
+// app/newcv/skills.tsx
+import { useCV } from "@/context/CVContext";
+import { auth, db } from "@/firebaseConfig";
+import { useRouter } from "expo-router";
+import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
-  ScrollView,
-  Alert,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useCV } from "@/context/CVContext";
-import { db, auth } from "@/firebaseConfig";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 
 type SkillItem = {
   name: string;
-  level: string; // örnek: %80, İleri, Orta, Başlangıç
+  level: string; // Örn: Başlangıç, Orta, İleri
 };
 
 export default function SkillsScreen() {
   const router = useRouter();
   const { cvData, updateCV } = useCV();
 
-  const [skills, setSkills] = useState<SkillItem[]>(cvData.skills || []);
-  const [newSkill, setNewSkill] = useState<SkillItem>({ name: "", level: "" });
-  const [loading, setLoading] = useState(false);
+  const [skills, setSkills] = useState<SkillItem[]>(
+    (cvData.skills as SkillItem[]) || []
+  );
 
-  // ➕ Yeni yetenek ekleme
+  const [newSkill, setNewSkill] = useState<SkillItem>({
+    name: "",
+    level: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const placeholderColor = "#9CA3AF";
+
+  // ➕ Yeni yetenek ekle
   const addSkill = () => {
-    if (!newSkill.name || !newSkill.level) {
-      Alert.alert("Eksik bilgi", "Yetenek adı ve seviye boş olamaz.");
+    if (!newSkill.name.trim() || !newSkill.level.trim()) {
+      Alert.alert(
+        "Eksik bilgi",
+        "Lütfen hem yetenek adını hem de seviyesini doldurun."
+      );
       return;
     }
-    const updated = [...skills, newSkill];
-    setSkills(updated);
-    setNewSkill({ name: "", level: "" });
+
+    const cleaned: SkillItem = {
+      name: newSkill.name.trim(),
+      level: newSkill.level.trim(),
+    };
+
+    setSkills((prev) => [...prev, cleaned]);
+
+    setNewSkill({
+      name: "",
+      level: "",
+    });
+  };
+
+  // ❌ Yetenek sil
+  const removeSkill = (index: number) => {
+    setSkills((prev) => prev.filter((_, i) => i !== index));
   };
 
   // 💾 Kaydet ve devam et
@@ -61,10 +86,10 @@ export default function SkillsScreen() {
         return;
       }
 
-      // 🔥 Firestore güncelle
+      // 🔥 Mevcut belgeyi güncelle
       const docRef = doc(db, "users", user.uid, "cvs", cvData.id);
       await updateDoc(docRef, {
-        skills,
+        skills: skills,
         updatedAt: serverTimestamp(),
       });
 
@@ -86,48 +111,69 @@ export default function SkillsScreen() {
         <View className="h-1 w-1/3 bg-cyan-500 rounded-full" />
       </View>
 
-      {/* Form Alanları */}
-      <TextInput
-        placeholder="Yetenek Adı (ör. React, Photoshop, Python)"
-        value={newSkill.name}
-        onChangeText={(t) => setNewSkill({ ...newSkill, name: t })}
-        className="border border-gray-300 rounded-xl p-3 mb-3"
-      />
+      <Text className="text-sm text-gray-700 mb-4">
+        Teknik ve kişisel yeteneklerini buraya ekleyebilirsin. Örn: React
+        Native, Flutter, İletişim, Takım Çalışması...
+      </Text>
 
-      <TextInput
-        placeholder="Seviye (ör. Başlangıç, Orta, İleri, %80)"
-        value={newSkill.level}
-        onChangeText={(t) => setNewSkill({ ...newSkill, level: t })}
-        className="border border-gray-300 rounded-xl p-3 mb-3"
-      />
-
-      <TouchableOpacity
-        onPress={addSkill}
-        className="bg-cyan-700 py-3 rounded-xl mb-6"
-      >
-        <Text className="text-white text-center font-semibold">
-          Yeni Yetenek Ekle
+      {/* Yeni yetenek ekleme alanı */}
+      <View className="mb-6">
+        <Text className="text-sm text-gray-700 mb-2">
+          Yeni yetenek eklemek istiyorum
         </Text>
-      </TouchableOpacity>
 
-      {/* Liste */}
-      {skills.length > 0 && (
-        <FlatList
-          data={skills}
-          keyExtractor={(_, i) => i.toString()}
-          renderItem={({ item }) => (
-            <View className="border border-gray-300 rounded-xl p-3 mb-3">
-              <Text className="font-semibold text-cyan-700">{item.name}</Text>
-              <Text className="text-gray-600 text-sm">Seviye: {item.level}</Text>
-            </View>
-          )}
+        <TextInput
+          placeholder="Yetenek Adı (Örn: React Native, Python)"
+          placeholderTextColor={placeholderColor}
+          value={newSkill.name || ""}
+          onChangeText={(t) => setNewSkill({ ...newSkill, name: t })}
+          className="border border-gray-300 rounded-xl p-3 mb-3 text-sm"
         />
-      )}
 
+        <TextInput
+          placeholder="Seviye (Örn: Başlangıç, Orta, İleri)"
+          placeholderTextColor={placeholderColor}
+          value={newSkill.level || ""}
+          onChangeText={(t) => setNewSkill({ ...newSkill, level: t })}
+          className="border border-gray-300 rounded-xl p-3 mb-4 text-sm"
+        />
+
+        <TouchableOpacity
+          onPress={addSkill}
+          className="self-start px-4 py-3 rounded-xl bg-cyan-700"
+        >
+          <Text className="text-white text-sm font-semibold">
+            Yeni Yetenek Ekle
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Mevcut yeteneklerin listesi – aynı kart + Sil tasarımı */}
+      {skills.map((item, index) => (
+        <View
+          key={`${item.name}-${index}`}
+          className="flex-row items-center justify-between mb-2 bg-gray-100 rounded-xl px-3 py-2"
+        >
+          <View className="flex-1 mr-2">
+            <Text className="text-sm font-semibold text-gray-800">
+              {item.name}
+            </Text>
+            <Text className="text-xs text-gray-600">{item.level}</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => removeSkill(index)}
+            className="px-3 py-1 rounded-full bg-red-100"
+          >
+            <Text className="text-xs font-semibold text-red-600">Sil</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+
+      {/* Devam Et Butonu */}
       <TouchableOpacity
         disabled={loading}
         onPress={handleNext}
-        className={`py-4 rounded-2xl mt-4 ${
+        className={`py-4 rounded-2xl mt-6 ${
           loading ? "bg-cyan-400" : "bg-cyan-600"
         }`}
       >
