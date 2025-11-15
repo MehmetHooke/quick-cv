@@ -109,7 +109,7 @@ export default function LanguagesScreen() {
 
         <TouchableOpacity
           onPress={handleAddLanguage}
-          className="self-start px-4 py-2 rounded-xl bg-cyan-600 mt-1"
+          className="self-center  px-12 py-3 rounded-xl bg-cyan-600"
         >
           <Text className="text-white text-sm font-semibold">
             Dil Ekle

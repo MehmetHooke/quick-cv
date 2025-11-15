@@ -1,3 +1,4 @@
+import { ContinueButton } from "@/components/form/ContinueButton";
 import { useCV } from "@/context/CVContext";
 import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
@@ -69,10 +70,7 @@ export default function CertificatesScreen() {
   // 💾 Kaydet ve devam et
   const handleNext = async () => {
     try {
-      if (certificateList.length === 0) {
-        Alert.alert("Uyarı", "En az bir sertifika eklemelisiniz.");
-        return;
-      }
+
 
       setLoading(true);
       updateCV("certificates", certificateList);
@@ -162,7 +160,7 @@ export default function CertificatesScreen() {
 
         <TouchableOpacity
           onPress={addCertificate}
-          className="self-start px-4 py-3 rounded-xl bg-cyan-700"
+          className="self-center  px-12 py-3 rounded-xl bg-cyan-600"
         >
           <Text className="text-white text-sm font-semibold">
             Yeni Sertifika Ekle
@@ -198,18 +196,14 @@ export default function CertificatesScreen() {
         </View>
       ))}
 
-      {/* Devam Et Butonu */}
-      <TouchableOpacity
-        disabled={loading}
+
+      {/* ✅ Devam Et Butonu (zorunlu olmayan) */}
+      <ContinueButton
         onPress={handleNext}
-        className={`py-4 rounded-2xl mt-6 ${
-          loading ? "bg-cyan-400" : "bg-cyan-600"
-        }`}
-      >
-        <Text className="text-center text-white font-semibold text-lg">
-          {loading ? "Kaydediliyor..." : "Devam Et →"}
-        </Text>
-      </TouchableOpacity>
+        loading={loading}
+        isOptional={true}   // bu adım zorunlu
+        
+      />
     </ScrollView>
   );
 }

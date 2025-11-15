@@ -73,10 +73,7 @@ export default function ExperienceScreen() {
   // 💾 Kaydet ve devam et
   const handleNext = async () => {
     try {
-      if (experienceList.length === 0) {
-        Alert.alert("Uyarı", "En az bir iş/staj deneyimi eklemelisiniz.");
-        return;
-      }
+
 
       setLoading(true);
       updateCV("experiences", experienceList);
@@ -174,7 +171,7 @@ export default function ExperienceScreen() {
 
         <TouchableOpacity
           onPress={addExperience}
-          className="self-start px-4 py-3 rounded-xl bg-cyan-700"
+          className="self-center  px-12 py-3 rounded-xl bg-cyan-600"
         >
           <Text className="text-white text-sm font-semibold">
             Yeni Deneyim Ekle

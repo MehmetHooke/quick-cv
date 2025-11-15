@@ -29,12 +29,31 @@ const templates = [
   {
     id: "modern",
     name: "Modern Minimalist CV",
-    description: "Kurumsal ve sade bir tasarım isteyenler için.",
-    image: require("@/assets/templates/minimalistCv1.png"),
+    description: "Sade ve Modern bir tasarım isteyenler için",
+    image: require("@/assets/templates/modern.png"),
   },
   {
     id: "minimal",
-    name: "Creative Accent",
+    name: "Minimalist Sade",
+    description: "Kurumsal ve sade bir tasarım isteyenler için.",
+    image: require("@/assets/templates/minimal.png"),
+  },
+
+    {
+    id: "pinkModern",
+    name: "Pembe Modern",
+    description: "Pembe, modern ve profesyonel CV şablonu.",
+    image: require("@/assets/templates/pinkModernCV.png"),
+  },
+  {
+    id: "navyBlueModern",
+    name: "Açık Mavi Modern CV",
+    description: "Kurumsal ve sade mavi temada bir tasarım isteyenler için.",
+    image: require("@/assets/templates/navybluemodern.png"),
+  },
+  {
+    id: "minimal 1",
+    name: "Creative Accent 1",
     description: "Renkli ve yaratıcı sektörlere uygun CV stili.",
     image: require("@/assets/templates/creative-accent.png"),
   },
@@ -153,7 +172,7 @@ export default function HomeScreen() {
   }));
 
   const renderItem = ({ item }: { item: (typeof templates)[0] }) => (
-    <CVCard item={item} onPreview={() => setSelected(item)} onUse={handleUseThemeDirect} />
+    <CVCard item={item} variant="grid" onPreview={() => setSelected(item)} onUse={handleUseThemeDirect}  />
   );
 
   return (
@@ -176,6 +195,11 @@ export default function HomeScreen() {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
+        numColumns={2}                 // ⬅️ Burayı ekle!
+        columnWrapperStyle={{          // ⬅️ Sütunlar arasında boşluk
+          justifyContent: "space-between",
+          paddingHorizontal: 10,
+          }}
         contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}
       />
 

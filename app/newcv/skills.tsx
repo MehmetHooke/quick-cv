@@ -6,12 +6,15 @@ import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type SkillItem = {
   name: string;
@@ -65,10 +68,7 @@ export default function SkillsScreen() {
   // 💾 Kaydet ve devam et
   const handleNext = async () => {
     try {
-      if (skills.length === 0) {
-        Alert.alert("Uyarı", "En az bir yetenek eklemelisiniz.");
-        return;
-      }
+
 
       setLoading(true);
       updateCV("skills", skills);
@@ -103,7 +103,22 @@ export default function SkillsScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white px-5 py-8 mt-5">
+    <SafeAreaView className="flex-1 bg-white">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+      >
+        <ScrollView
+          className="flex-1 px-5 py-8 mt-5"
+          contentContainerStyle={{ paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+
+
+
+
       <View className="items-center mb-6">
         <Text className="text-2xl font-bold text-cyan-700 mb-1">
           Yetenekler
@@ -140,7 +155,7 @@ export default function SkillsScreen() {
 
         <TouchableOpacity
           onPress={addSkill}
-          className="self-start px-4 py-3 rounded-xl bg-cyan-700"
+          className="self-center  px-12 py-3 rounded-xl bg-cyan-600"
         >
           <Text className="text-white text-sm font-semibold">
             Yeni Yetenek Ekle
@@ -181,6 +196,8 @@ export default function SkillsScreen() {
           {loading ? "Kaydediliyor..." : "Devam Et →"}
         </Text>
       </TouchableOpacity>
-    </ScrollView>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
   );
 }

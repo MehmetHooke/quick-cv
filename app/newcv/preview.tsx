@@ -6,10 +6,8 @@ import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from "react-native";
 
-// Tema bileşenleri
-import ClassicCV from "@/components/cvThemes/ClassicCV";
-import MinimalCV from "@/components/cvThemes/MinimalCV";
-import ModernCV from "@/components/cvThemes/ModernCV";
+// 🔁 Artık tek bir preview component'i kullanıyoruz
+import PreviewCV from "@/components/cvThemes/PreviewCV";
 
 // Paylaşım ve render istemcisi
 import { renderPdf, type Theme } from "@/app/lib/renderClient";
@@ -44,8 +42,13 @@ export default function PreviewScreen() {
 
         const docRef = doc(db, "users", user.uid, "cvs", cvData.id);
         const snapshot = await getDoc(docRef);
-        if (snapshot.exists()) setCv(snapshot.data());
-        else Alert.alert("Hata", "CV verisi bulunamadı.");
+
+        if (snapshot.exists()) {
+          // 🔹 Eskiden ne alıyorsan aynen onu alıyoruz
+          setCv(snapshot.data());
+        } else {
+          Alert.alert("Hata", "CV verisi bulunamadı.");
+        }
       } catch (error) {
         console.error("CV çekme hatası:", error);
         Alert.alert("Hata", "CV verisi alınırken bir hata oluştu.");
@@ -53,75 +56,66 @@ export default function PreviewScreen() {
         setLoading(false);
       }
     };
+
     fetchCV();
   }, []);
 
   const handleGeneratePDF = async () => {
-  if (!cv || generating) return;
-  setGenerating(true);
+    if (!cv || generating) return;
+    setGenerating(true);
 
-  try {
-    const theme = (cv.theme ?? "classic") as Theme;
+    try {
+      const theme = (cv.theme ?? "classic") as Theme;
 
-    // 🔧 Backend'in beklediği veri formatına map'leme
-    const serverData = {
-      personalInfo: {
-        ...cv.personalInfo,
-        // modern.html.ts'te kullandığımız alanlara fallback:
-        title: cv.personalInfo?.headline ?? cv.personalInfo?.title ?? "",
-        city: cv.personalInfo?.city ?? cv.personalInfo?.location ?? "",
-      },
-      education: cv.education ?? [],
-      experiences: cv.experiences ?? [],
-      certificates: cv.certificates ?? [],
-      skills: cv.skills ?? [],
-      languages: cv.languages ?? [],
-      about: cv.about ?? "",
-    };
+      // 🔹 PDF tarafı: SENİN ORİJİNAL MANTIK AYNEN DURUYOR
+      const serverData = {
+        personalInfo: {
+          ...cv.personalInfo,
+          // modern.html.ts'te kullandığımız alanlara fallback:
+          title: cv.personalInfo?.headline ?? cv.personalInfo?.title ?? "",
+          city: cv.personalInfo?.city ?? cv.personalInfo?.location ?? "",
+        },
+        education: cv.education ?? [],
+        experiences: cv.experiences ?? [],
+        certificates: cv.certificates ?? [],
+        skills: cv.skills ?? [],
+        languages: cv.languages ?? [],
+        about: cv.about ?? "",
+      };
 
-    const fileUri = await renderPdf({
-      endpoint: ENDPOINT,
-      apiKey: API_KEY,
-      data: serverData,   // ✅ artık temiz ve backend uyumlu
-      theme,              // "classic" | "modern" | "minimal"
-    });
-
-    if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(fileUri, {
-        mimeType: "application/pdf",
-        dialogTitle: "PDF Paylaş",
+      const fileUri = await renderPdf({
+        endpoint: ENDPOINT,
+        apiKey: API_KEY,
+        data: serverData,   // ✅ Backend’in alıştığı veri formatı
+        theme,              // "classic" | "modern" | "minimal"
       });
-    } else {
-      Alert.alert("PDF Hazır", fileUri);
-    }
-  } catch (e: any) {
-    console.error("Render error:", e);
-    if (e.message === "ERR_401") {
-      Alert.alert("Hata", "Uygulama anahtarı geçersiz.");
-    } else if (e.name === "AbortError") {
-      Alert.alert("Zaman Aşımı", "Sunucu yanıt vermedi (30 sn).");
-    } else {
-      Alert.alert("Hata", `Render başarısız: ${e?.message ?? e}`);
-    }
-  } finally {
-    setGenerating(false);
-  }
-};
 
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: "application/pdf",
+          dialogTitle: "PDF Paylaş",
+        });
+      } else {
+        Alert.alert("PDF Hazır", fileUri);
+      }
+    } catch (e: any) {
+      console.error("Render error:", e);
+      if (e.message === "ERR_401") {
+        Alert.alert("Hata", "Uygulama anahtarı geçersiz.");
+      } else if (e.name === "AbortError") {
+        Alert.alert("Zaman Aşımı", "Sunucu yanıt vermedi (30 sn).");
+      } else {
+        Alert.alert("Hata", `Render başarısız: ${e?.message ?? e}`);
+      }
+    } finally {
+      setGenerating(false);
+    }
+  };
 
+  // 🔁 Artık tema switch yok, tek PreviewCV
   const renderCV = () => {
     if (!cv) return null;
-    switch (cv.theme) {
-      case "classic": return <ClassicCV data={cv} />;
-      case "modern":  return <ModernCV data={cv} />;
-      case "minimal": return <MinimalCV data={cv} />;
-      default:
-        return (
-          <View className="items-center justify-center">
-            <Text className="text-gray-500">Tema seçilmemiş veya bulunamadı.</Text>
-          </View>
-        );
-    }
+    return <PreviewCV data={cv} />;
   };
 
   if (loading) {
@@ -134,8 +128,10 @@ export default function PreviewScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white px-5 py-6 mt-5">
-      <Text className="text-2xl font-bold text-cyan-700 text-center mb-4">CV Önizlemesi</Text>
+    <View className="flex-1 bg-current px-5 py-6 mt-6">
+      <Text className="text-3xl font-bold color-primary text-center mb-4">
+        Bilgi Önizleme
+      </Text>
 
       {/* A4 oranlı tek sayfa önizleme alanı */}
       <View
@@ -154,7 +150,9 @@ export default function PreviewScreen() {
       <View className="flex-row justify-around mt-6">
         <TouchableOpacity
           disabled={generating}
-          className={`px-5 py-3 rounded-xl ${generating ? "bg-cyan-400" : "bg-cyan-600"}`}
+          className={`px-5 py-3 rounded-xl ${
+            generating ? "bg-cyan-400" : "bg-cyan-600"
+          }`}
           onPress={handleGeneratePDF}
         >
           <Text className="text-white font-semibold">
@@ -164,7 +162,9 @@ export default function PreviewScreen() {
 
         <TouchableOpacity
           disabled={generating}
-          className={`px-5 py-3 rounded-xl ${generating ? "bg-cyan-400" : "bg-cyan-600"}`}
+          className={`px-5 py-3 rounded-xl ${
+            generating ? "bg-cyan-400" : "bg-cyan-600"
+          }`}
           onPress={handleGeneratePDF}
         >
           <Text className="text-white font-semibold">

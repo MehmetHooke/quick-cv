@@ -1,3 +1,4 @@
+import { ContinueButton } from "@/components/form/ContinueButton";
 import { useCV } from "@/context/CVContext";
 import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
@@ -5,12 +6,15 @@ import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type EducationItem = {
   school: string;
@@ -33,6 +37,10 @@ export default function EducationScreen() {
     year: "",
     grade: "",
   });
+
+  const isFormValid = educationList.length > 0 ;
+
+  
 
   const [loading, setLoading] = useState(false);
   const placeholderColor = "#9CA3AF";
@@ -107,7 +115,18 @@ export default function EducationScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white px-5 py-8 mt-5">
+    <SafeAreaView className="flex-1 bg-white">
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+          >
+            <ScrollView
+              className="flex-1 px-5 py-8 mt-5"
+              contentContainerStyle={{ paddingBottom: 40 }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
       <View className="items-center mb-6">
         <Text className="text-2xl font-bold text-cyan-700 mb-1">
           Eğitim Bilgileri
@@ -161,7 +180,7 @@ export default function EducationScreen() {
 
         <TouchableOpacity
           onPress={addEducation}
-          className="self-start px-4 py-3 rounded-xl bg-cyan-700"
+          className="self-center  px-12 py-3 rounded-xl bg-cyan-600"
         >
           <Text className="text-white text-sm font-semibold">
             Yeni Eğitim Ekle
@@ -194,17 +213,15 @@ export default function EducationScreen() {
       ))}
 
       {/* Devam Et Butonu */}
-      <TouchableOpacity
-        disabled={loading}
+      {/* ✅ Devam Et Butonu (zorunlu sayfa) */}
+      <ContinueButton
         onPress={handleNext}
-        className={`py-4 rounded-2xl mt-6 ${
-          loading ? "bg-cyan-400" : "bg-cyan-600"
-        }`}
-      >
-        <Text className="text-center text-white font-semibold text-lg">
-          {loading ? "Kaydediliyor..." : "Devam Et →"}
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+        loading={loading}
+        isOptional={false}   // bu adım zorunlu
+        isValid={isFormValid}
+      />
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
   );
 }

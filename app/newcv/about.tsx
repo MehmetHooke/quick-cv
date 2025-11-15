@@ -1,22 +1,28 @@
+import { ContinueButton } from "@/components/form/ContinueButton";
+import { useCV } from "@/context/CVContext";
+import { auth, db } from "@/firebaseConfig";
+import { useRouter } from "expo-router";
+import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
+  View
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useCV } from "@/context/CVContext";
-import { db, auth } from "@/firebaseConfig";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AboutScreen() {
   const router = useRouter();
   const { cvData, updateCV } = useCV();
   const [about, setAbout] = useState(cvData.about || "");
   const [loading, setLoading] = useState(false);
+  //
+  const isFormValid = about.trim().length > 0;
+
 
   const handleNext = async () => {
     try {
@@ -26,6 +32,7 @@ export default function AboutScreen() {
       }
 
       setLoading(true);
+      // Context içini güncelle
       updateCV("about", about);
 
       const user = auth.currentUser;
@@ -44,7 +51,8 @@ export default function AboutScreen() {
       // 🔥 Firestore güncelle
       const docRef = doc(db, "users", user.uid, "cvs", cvData.id);
       await updateDoc(docRef, {
-        about,
+        about,                          // Hakkında
+        languages: cvData.languages ?? [], // ✅ Dil bilgilerini de kaydet
         updatedAt: serverTimestamp(),
       });
 
@@ -58,7 +66,18 @@ export default function AboutScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white px-5 py-8 mt-5">
+    <SafeAreaView className="flex-1 bg-white">
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+          >
+            <ScrollView
+              className="flex-1 px-5 py-8 mt-5"
+              contentContainerStyle={{ paddingBottom: 40 }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
       <View className="items-center mb-6">
         <Text className="text-2xl font-bold text-cyan-700 mb-1">
           Kendini Tanıt
@@ -67,7 +86,7 @@ export default function AboutScreen() {
       </View>
 
       <Text className="text-gray-500 text-sm mb-4 text-center">
-        Bu bölümde kendini kısa ve etkili bir şekilde tanıt.  
+        Bu bölümde kendini kısa ve etkili bir şekilde tanıt.{"\n"}
         CV’ni okuyan kişinin seni tanımasına yardımcı olacak birkaç cümle yaz.
       </Text>
 
@@ -78,20 +97,18 @@ export default function AboutScreen() {
         multiline
         numberOfLines={8}
         textAlignVertical="top"
-        className="border border-gray-300 rounded-2xl p-4 text-gray-700 mb-6"
+        className="border p-3 border-gray-300 rounded-2xl p4 text-gray-700 mb-6"
       />
 
-      <TouchableOpacity
-        disabled={loading}
+      {/* ✅ Devam Et Butonu (zorunlu sayfa) */}
+      <ContinueButton
         onPress={handleNext}
-        className={`py-4 rounded-2xl ${
-          loading ? "bg-cyan-400" : "bg-cyan-600"
-        }`}
-      >
-        <Text className="text-center text-white font-semibold text-lg">
-          {loading ? "Kaydediliyor..." : "CV'yi Önizle →"}
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+        loading={loading}
+        isOptional={false}   // bu adım zorunlu
+        isValid={isFormValid}
+      />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
   );
 }

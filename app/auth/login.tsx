@@ -1,24 +1,24 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  ImageBackground,
-  Pressable,
-  Image,
-  Alert,
-  Dimensions,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  useWindowDimensions,
-} from "react-native";
+import { auth } from "@/firebaseConfig";
 import { router } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/firebaseConfig";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState } from "react";
+import {
+  Alert,
+  Dimensions,
+  Image,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import * as Animatable from "react-native-animatable";
 import { clamp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
@@ -41,7 +41,7 @@ const { width, height } = useWindowDimensions();
       await signInWithEmailAndPassword(auth, email, password);
       router.replace("/(tabs)");
     } catch (error: any) {
-      Alert.alert("Giriş Hatası", error.message);
+      Alert.alert("Giriş Hatası", "Kullanıcı Adı Veya Şifre Hatalı !");
     }
   };
 
