@@ -52,11 +52,13 @@ const templates = [
     image: require("@/assets/templates/navybluemodern.png"),
   },
   {
-    id: "minimal 1",
-    name: "Creative Accent 1",
-    description: "Renkli ve yaratıcı sektörlere uygun CV stili.",
-    image: require("@/assets/templates/creative-accent.png"),
+    id: "tealWave",
+    name: "Teal Wave",
+    description: "Sol tarafta pastel mavi panel, sağda dalgalı başlık alanı ile modern ve sade satır aralığı yüksek bir CV tasarımı. Özellikle teknik ve kreatif adaylar için şık bir görünüm sunar",
+    image: require("@/assets/templates/tealwave.png"),
   },
+
+  
 ];
 
 export default function HomeScreen() {

@@ -1,7 +1,7 @@
 // app/components/cvThemes/PreviewCV.tsx
 import { tokens } from "@/constants/tokens";
 import React from "react";
-import { Image, Text, View } from "react-native";
+import { Image, ScrollView, Text, View } from "react-native";
 
 // ---- Tipler (daha esnek, her şey opsiyonel ki eksik alanlarda hata vermesin)
 type PersonalInfo = {
@@ -82,13 +82,13 @@ export default function PreviewCV({ data }: { data: CVData | any }) {
     : [];
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: "#ffffff",
+    <ScrollView
+      style={{ flex: 1, backgroundColor: "#ffffff" }}
+      contentContainerStyle={{
         paddingHorizontal: tokens.spacing.xl,
         paddingVertical: tokens.spacing.lg,
       }}
+      showsVerticalScrollIndicator={false}
     >
       {/* Üst Başlık */}
       <View
@@ -177,7 +177,7 @@ export default function PreviewCV({ data }: { data: CVData | any }) {
             </Text>
           ) : null}
 
-          {/* Ek iletişim alanları (Instagram, Telegram vb.) */}
+          {/* Ek iletişim alanları */}
           {extraContacts.length > 0 && (
             <View style={{ marginTop: tokens.spacing.sm }}>
               {extraContacts.map((item, idx) => {
@@ -240,7 +240,7 @@ export default function PreviewCV({ data }: { data: CVData | any }) {
                   fontSize: tokens.fonts.body,
                   marginBottom: 4,
                 }}
-                numberOfLines={2}
+                // ❌ numberOfLines kaldırıldı, tam gözüksün
               >
                 {safeText(e?.school)} — {safeText(e?.department)} (
                 {safeText(e?.year)})
@@ -287,7 +287,7 @@ export default function PreviewCV({ data }: { data: CVData | any }) {
                       fontSize: tokens.fonts.small,
                       marginTop: 2,
                     }}
-                    numberOfLines={2}
+                    // ❌ numberOfLines={2} kaldırıldı
                   >
                     {e.description}
                   </Text>
@@ -350,7 +350,7 @@ export default function PreviewCV({ data }: { data: CVData | any }) {
         </View>
       )}
 
-      {/* Yetenekler – isim + seviye */}
+      {/* Yetenekler */}
       {hasArray(skills) && (
         <View style={{ marginBottom: tokens.spacing.lg }}>
           <Text
@@ -439,12 +439,12 @@ export default function PreviewCV({ data }: { data: CVData | any }) {
           </Text>
           <Text
             style={{ color: tokens.colors.text, fontSize: tokens.fonts.body }}
-            numberOfLines={6} // tek sayfada taşmayı azalt
+            
           >
             {about}
           </Text>
         </View>
       ) : null}
-    </View>
+    </ScrollView>
   );
 }

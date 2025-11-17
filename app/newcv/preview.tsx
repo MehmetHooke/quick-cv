@@ -15,8 +15,10 @@ import * as Sharing from "expo-sharing";
 
 // --------- Sabitler ---------
 const A4_RATIO = 210 / 297; // sadece önizleme oranı
-const ENDPOINT = "https://cv-render-service-jrxoy76crq-ey.a.run.app"; // ← kendi Cloud Run URL’in
-const API_KEY  = "MY_API_KEY"; // ← kendi gizli anahtarın
+
+
+const ENDPOINT =process.env.EXPO_PUBLIC_SERVER_ENDPOINT;
+const API_KEY = process.env.EXPO_PUBLIC_SERVER_API_KEY;
 
 export default function PreviewScreen() {
   const router = useRouter();
@@ -82,6 +84,10 @@ export default function PreviewScreen() {
         languages: cv.languages ?? [],
         about: cv.about ?? "",
       };
+
+      if (!ENDPOINT || !API_KEY) {
+         throw new Error("EXPO_PUBLIC_SERVER_ENDPOINT veya EXPO_PUBLIC_SERVER_API_KEY tanımlı değil");
+      }
 
       const fileUri = await renderPdf({
         endpoint: ENDPOINT,

@@ -1,7 +1,7 @@
-import React from "react";
-import { View, Text, Image, ImageBackground } from "react-native";
-import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import React from "react";
+import { ImageBackground, Text, View } from "react-native";
 
 
 const TabIcon = ({ focused, icon, title }: any) => {
@@ -67,15 +67,15 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
-        name="createcv"
+        name="historycv"
         options={{
-          title: "Yeni CV",
+          title: "Geçmiş CV",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
               icon="document-text-outline"
-              title="Yeni CV"
+              title="Geçmiş CV"
             />
           ),
         }}

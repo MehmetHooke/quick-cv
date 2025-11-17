@@ -20,14 +20,11 @@ import * as Animatable from "react-native-animatable";
 import { clamp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width, height } = Dimensions.get("window");
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 export default function LoginScreen() {
-const { width, height } = useWindowDimensions();
-    
-
-  const logoSize= clamp(width * 0.8, 220, 360);    // logo kare
-
+  const { width } = useWindowDimensions();
+  const logoSize = clamp(width * 0.8, 220, 360);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,17 +63,17 @@ const { width, height } = useWindowDimensions();
             showsVerticalScrollIndicator={false}
           >
             {/* 🔹 LOGO */}
-          <Animatable.Image
-            animation="zoomIn"
-            duration={1000}
-            delay={300}
-            source={require("@/assets/icons/logo.png")}
-            style={{
-              width: logoSize,
-              height: logoSize,
-              resizeMode: "contain",
-            }}
-          />
+            <Animatable.Image
+              animation="zoomIn"
+              duration={1000}
+              delay={300}
+              source={require("@/assets/icons/logo.png")}
+              style={{
+                width: logoSize,
+                height: logoSize,
+                resizeMode: "contain",
+              }}
+            />
 
             {/* 📧 E-posta */}
             <View className="mt-5 mb-5 w-[80%]">
@@ -142,28 +139,7 @@ const { width, height } = useWindowDimensions();
               </Text>
             </Text>
 
-            {/* 🔹 Google Giriş */}
-            <Pressable
-              onPress={() => Alert.alert("Google girişi henüz aktif değil.")}
-              style={{
-                width: width * 0.5,
-                height: 40,
-                shadowColor: "#000",
-                shadowOpacity: 0.25,
-                shadowOffset: { width: 4, height: 4 },
-                shadowRadius: 4,
-              }}
-              className="bg-[#0C94B9] rounded-lg flex-row items-center justify-center"
-            >
-              <Image
-                source={require("@/assets/icons/google.png")}
-                className="w-5 h-5 mr-2"
-                resizeMode="contain"
-              />
-              <Text className="text-white text-[16px] font-medium">
-                Google ile Giriş Yap
-              </Text>
-            </Pressable>
+            {/* // İLERİDE GOOGLE GİRİŞ İÇİN BURAYA BUTON EKLERİZ */}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
