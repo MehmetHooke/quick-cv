@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeContext";
 import React from "react";
 import { Text, TouchableOpacity } from "react-native";
 import * as Animatable from "react-native-animatable";
@@ -19,11 +20,12 @@ export function ContinueButton({
   // - isOptional === true  -> her zaman göster
   // - isOptional === false -> sadece isValid === true iken göster
   const shouldShow = isOptional || isValid;
-
+  const { theme } = useTheme();
   if (!shouldShow) return null;
 
   return (
-    <Animatable.View animation="fadeIn" duration={1300}>
+    <Animatable.View animation="fadeIn" duration={1500}
+>
       <TouchableOpacity
         disabled={loading}
         onPress={onPress}

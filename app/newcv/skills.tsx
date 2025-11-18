@@ -1,11 +1,13 @@
 // app/newcv/skills.tsx
 import { useCV } from "@/context/CVContext";
+import { useTheme } from "@/context/ThemeContext";
 import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
   Alert,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -24,6 +26,7 @@ type SkillItem = {
 export default function SkillsScreen() {
   const router = useRouter();
   const { cvData, updateCV } = useCV();
+  const { theme } = useTheme();
 
   const [skills, setSkills] = useState<SkillItem[]>(
     (cvData.skills as SkillItem[]) || []
@@ -103,7 +106,12 @@ export default function SkillsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+   <ImageBackground
+    source={theme.bgImage}
+    style={{ flex: 1 }}
+    resizeMode="cover"
+    >
+    <SafeAreaView className="flex-1 ">
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -120,20 +128,20 @@ export default function SkillsScreen() {
 
 
       <View className="items-center mb-6">
-        <Text className="text-2xl font-bold text-cyan-700 mb-1">
+        <Text className="text-2xl font-bold  mb-1" style={{ color: theme.colors.primary }}>
           Yetenekler
         </Text>
-        <View className="h-1 w-1/3 bg-cyan-500 rounded-full" />
+        <View className="h-1 w-1/3  rounded-full" style={{ backgroundColor: theme.colors.primary }} />
       </View>
 
-      <Text className="text-sm text-gray-700 mb-4">
+      <Text className="text-sm  mb-4" style={{ color: theme.colors.text }}>
         Teknik ve kişisel yeteneklerini buraya ekleyebilirsin. Örn: React
         Native, Flutter, İletişim, Takım Çalışması...
       </Text>
 
       {/* Yeni yetenek ekleme alanı */}
       <View className="mb-6">
-        <Text className="text-sm text-gray-700 mb-2">
+        <Text className="text-sm  mb-2" style={{ color: theme.colors.text }}>
           Yeni yetenek eklemek istiyorum
         </Text>
 
@@ -142,7 +150,8 @@ export default function SkillsScreen() {
           placeholderTextColor={placeholderColor}
           value={newSkill.name || ""}
           onChangeText={(t) => setNewSkill({ ...newSkill, name: t })}
-          className="border border-gray-300 rounded-xl p-3 mb-3 text-sm"
+          style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
+          className="border   rounded-xl p-3 mb-3 text-sm"
         />
 
         <TextInput
@@ -150,7 +159,8 @@ export default function SkillsScreen() {
           placeholderTextColor={placeholderColor}
           value={newSkill.level || ""}
           onChangeText={(t) => setNewSkill({ ...newSkill, level: t })}
-          className="border border-gray-300 rounded-xl p-3 mb-4 text-sm"
+          style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
+          className="border  rounded-xl p-3 mb-4 text-sm"
         />
 
         <TouchableOpacity
@@ -167,17 +177,19 @@ export default function SkillsScreen() {
       {skills.map((item, index) => (
         <View
           key={`${item.name}-${index}`}
-          className="flex-row items-center justify-between mb-2 bg-gray-100 rounded-xl px-3 py-2"
+          style={{ backgroundColor: theme.colors.inputBg }}
+          className="flex-row items-center justify-between mb-2  rounded-xl px-3 py-2"
         >
           <View className="flex-1 mr-2">
-            <Text className="text-sm font-semibold text-gray-800">
+            <Text className="text-sm font-semibold" style={{ color: theme.colors.text }}>
               {item.name}
             </Text>
-            <Text className="text-xs text-gray-600">{item.level}</Text>
+            <Text className="text-xs" style={{ color: theme.colors.mutedText }}>{item.level}</Text>
           </View>
           <TouchableOpacity
             onPress={() => removeSkill(index)}
-            className="px-3 py-1 rounded-full bg-red-100"
+            className="px-3 py-1 rounded-full "
+            style={{ backgroundColor: "#FEE2E2" }}
           >
             <Text className="text-xs font-semibold text-red-600">Sil</Text>
           </TouchableOpacity>
@@ -199,5 +211,6 @@ export default function SkillsScreen() {
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
+    </ImageBackground>
   );
 }

@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import {
   Alert,
   Image,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,6 +19,7 @@ import {
 } from "react-native";
 
 import { ContinueButton } from "@/components/form/ContinueButton";
+import { useTheme } from "@/context/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PersonalInfoScreen() {
@@ -25,8 +27,9 @@ export default function PersonalInfoScreen() {
   const { cvData, updateCV } = useCV();
   const [personalInfo, setPersonalInfo] = useState(cvData.personalInfo);
   const [loading, setLoading] = useState(false);
+  const { theme } = useTheme();
 
-    const isFormValid =
+  const isFormValid =
     personalInfo.firstName?.trim().length > 0 &&
     personalInfo.lastName?.trim().length > 0 &&
     personalInfo.phone?.trim().length > 0 &&
@@ -64,15 +67,17 @@ export default function PersonalInfoScreen() {
       // Önce ekranda anında önizleme
       setPersonalInfo((p: any) => ({ ...p, photo: uri }));
 
-      // Kullanıcı giriş yapmışsa arkada Storage'a yükle ve https URL'e çevir
       const user = auth.currentUser;
       if (user) {
         try {
           const url = await uploadImageAsync(uri, user.uid);
-          setPersonalInfo((p: any) => ({ ...p, photo: url })); // Firestore'a https kaydedilecek
+          setPersonalInfo((p: any) => ({ ...p, photo: url }));
         } catch (e) {
           console.error("Fotoğraf yükleme hatası:", e);
-          Alert.alert("Uyarı", "Fotoğraf yüklenemedi. İnternetinizi kontrol edin.");
+          Alert.alert(
+            "Uyarı",
+            "Fotoğraf yüklenemedi. İnternetinizi kontrol edin."
+          );
         }
       }
     }
@@ -93,10 +98,7 @@ export default function PersonalInfoScreen() {
 
     setPersonalInfo((prev: any) => ({
       ...prev,
-      extraContacts: [
-        ...(prev.extraContacts || []),
-        { label, value },
-      ],
+      extraContacts: [...(prev.extraContacts || []), { label, value }],
     }));
 
     setNewContactLabel("");
@@ -116,8 +118,15 @@ export default function PersonalInfoScreen() {
   // 👉 Devam Et butonu
   const handleNext = async () => {
     try {
-      if (!personalInfo.firstName || !personalInfo.lastName || !personalInfo.email) {
-        Alert.alert("Eksik bilgi", "Lütfen isim, soyisim ve e-posta alanlarını doldurun.");
+      if (
+        !personalInfo.firstName ||
+        !personalInfo.lastName ||
+        !personalInfo.email
+      ) {
+        Alert.alert(
+          "Eksik bilgi",
+          "Lütfen isim, soyisim ve e-posta alanlarını doldurun."
+        );
         return;
       }
 
@@ -137,7 +146,6 @@ export default function PersonalInfoScreen() {
           photo = await uploadImageAsync(photo, user.uid);
         } catch (e) {
           console.error("Foto (gecikmeli) yükleme hatası:", e);
-          // foto yüklenemese bile diğer bilgiler kaydedilsin; istersen burada return de yapabilirsin.
         }
       }
 
@@ -153,12 +161,11 @@ export default function PersonalInfoScreen() {
       const cvRef = collection(db, "users", user.uid, "cvs");
       const docRef = await addDoc(cvRef, {
         ...cvData,
-        personalInfo: finalPersonalInfo, // 👈 https URL + location + headline + extraContacts ile
+        personalInfo: finalPersonalInfo,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
-      // 🎯 Oluşan belge kimliğini context'e kaydet
       updateCV("id", docRef.id);
 
       setLoading(false);
@@ -173,195 +180,307 @@ export default function PersonalInfoScreen() {
   const placeholderColor = "#9CA3AF";
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
-      >
-        <ScrollView
-          className="flex-1 px-5 py-8 mt-5"
-          contentContainerStyle={{ paddingBottom: 40 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+    <ImageBackground
+      source={theme.bgImage}
+      style={{ flex: 1 }}
+      resizeMode="cover"
+    >
+      <SafeAreaView className="flex-1">
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
         >
-          <View className="items-center mb-6">
-            <Text className="text-2xl font-bold text-cyan-700 mb-1">
-              Kişisel Bilgiler
-            </Text>
-            <View className="h-1 w-1/3 bg-cyan-500 rounded-full" />
-          </View>
-
-          {/* 🧍‍♂️ Form Alanları */}
-
-          {/* 📷 Fotoğraf */}
-          <TouchableOpacity
-            onPress={pickImage}
-            className="border-2 border-dashed border-gray-400 rounded-2xl  p-10 items-center mb-6"
+          <ScrollView
+            className="flex-1 px-5 py-8 mt-5"
+            contentContainerStyle={{ paddingBottom: 40 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            {personalInfo.photo ? (
-              <Image
-                source={{ uri: personalInfo.photo }}
-                className="w-24 h-24 rounded-full"
+            <View className="items-center mb-6">
+              <Text
+                className="text-2xl font-bold mb-1"
+                style={{ color: theme.colors.primary }}
+              >
+                Kişisel Bilgiler
+              </Text>
+              <View
+                className="h-1 w-1/3 rounded-full"
+                style={{ backgroundColor: theme.colors.primary }}
               />
-            ) : (
-              <Text className="text-gray-400 font-medium">
-                Fotoğraf Yükle veya Çek
-              </Text>
-            )}
-          </TouchableOpacity>
+            </View>
 
-          <TextInput
-            placeholder="İsim"
-            placeholderTextColor={placeholderColor}
-            value={personalInfo.firstName || ""}
-            onChangeText={(t) =>
-              setPersonalInfo({ ...personalInfo, firstName: t })
-            }
-            className="border border-gray-300 rounded-xl p-3 mb-3"
-          />
+            {/* 📷 Fotoğraf */}
+{personalInfo.photo ? (
+  // 📌 Fotoğraf varsa → sadece yuvarlak fotoğraf göster + tıklanabilir
+  <TouchableOpacity
+    onPress={pickImage}
+    className="self-center mb-6"
+  >
+    <View
+      style={{
+        width: 140,
+        height: 140,
+        borderRadius: 70,
+        overflow: "hidden",
+        borderWidth: 3,
+        borderColor: theme.colors.primary,
+      }}
+    >
+      <Image
+        source={{ uri: personalInfo.photo }}
+        style={{ width: "100%", height: "100%" }}
+        resizeMode="cover"
+      />
+    </View>
 
-          <TextInput
-            placeholder="Soyisim"
-            placeholderTextColor={placeholderColor}
-            value={personalInfo.lastName || ""}
-            onChangeText={(t) =>
-              setPersonalInfo({ ...personalInfo, lastName: t })
-            }
-            className="border border-gray-300 rounded-xl p-3 mb-3"
-          />
+    <Text
+      style={{
+        textAlign: "center",
+        marginTop: 8,
+        color: theme.colors.mutedText,
+        fontSize: 12,
+      }}
+    >
+      Değiştir
+    </Text>
+  </TouchableOpacity>
+) : (
+  // 📌 Fotoğraf yok → dashed border görünür
+  <TouchableOpacity
+    onPress={pickImage}
+    className="rounded-2xl p-10 items-center mb-6 border-2 border-dashed"
+    style={{
+      borderColor: theme.colors.inputBorder,
+      backgroundColor: theme.colors.card,
+    }}
+  >
+    <Text
+      className="font-medium"
+      style={{ color: theme.colors.mutedText }}
+    >
+      Fotoğraf Yükle veya Çek
+    </Text>
+  </TouchableOpacity>
+)}
 
-          <TextInput
-            placeholder="Telefon"
-            placeholderTextColor={placeholderColor}
-            keyboardType="phone-pad"
-            value={personalInfo.phone || ""}
-            onChangeText={(t) =>
-              setPersonalInfo({ ...personalInfo, phone: t })
-            }
-            className="border border-gray-300 rounded-xl p-3 mb-3"
-          />
 
-          <TextInput
-            placeholder="E-posta"
-            placeholderTextColor={placeholderColor}
-            keyboardType="email-address"
-            value={personalInfo.email || ""}
-            onChangeText={(t) =>
-              setPersonalInfo({ ...personalInfo, email: t })
-            }
-            className="border border-gray-300 rounded-xl p-3 mb-3"
-          />
+            {/* Form alanları */}
+            <TextInput
+              placeholder="İsim"
+              placeholderTextColor={placeholderColor}
+              value={personalInfo.firstName || ""}
+              onChangeText={(t) =>
+                setPersonalInfo({ ...personalInfo, firstName: t })
+              }
+              className="rounded-xl p-3 mb-3"
+              style={{
+                borderWidth: 1,
+                borderColor: theme.colors.inputBorder,
+                backgroundColor: theme.colors.inputBg,
+                color: theme.colors.text,
+              }}
+            />
 
-          {/* 💼 Meslek / Başlık (headline) */}
-          <TextInput
-            placeholder="Mesleğin / Başlığın (Örn: Full Stack Mobil & Web Geliştirici)"
-            placeholderTextColor={placeholderColor}
-            value={personalInfo.headline || ""}
-            onChangeText={(t) =>
-              setPersonalInfo({ ...personalInfo, headline: t })
-            }
-            className="border border-gray-300 rounded-xl p-3 mb-3"
-          />
+            <TextInput
+              placeholder="Soyisim"
+              placeholderTextColor={placeholderColor}
+              value={personalInfo.lastName || ""}
+              onChangeText={(t) =>
+                setPersonalInfo({ ...personalInfo, lastName: t })
+              }
+              className="rounded-xl p-3 mb-3"
+              style={{
+                borderWidth: 1,
+                borderColor: theme.colors.inputBorder,
+                backgroundColor: theme.colors.inputBg,
+                color: theme.colors.text,
+              }}
+            />
 
-          {/* 📍 Konum */}
-          <TextInput
-            placeholder="Konum (Örn: İstanbul, Türkiye)"
-            placeholderTextColor={placeholderColor}
-            value={personalInfo.location || ""}
-            onChangeText={(t) =>
-              setPersonalInfo({ ...personalInfo, location: t })
-            }
-            className="border border-gray-300 rounded-xl p-3 mb-5"
-          />
+            <TextInput
+              placeholder="Telefon"
+              placeholderTextColor={placeholderColor}
+              keyboardType="phone-pad"
+              value={personalInfo.phone || ""}
+              onChangeText={(t) =>
+                setPersonalInfo({ ...personalInfo, phone: t })
+              }
+              className="rounded-xl p-3 mb-3"
+              style={{
+                borderWidth: 1,
+                borderColor: theme.colors.inputBorder,
+                backgroundColor: theme.colors.inputBg,
+                color: theme.colors.text,
+              }}
+            />
 
-          {/* 🔗 Ekstra İletişim Bilgileri */}
-          <View className="mb-6">
-            <TouchableOpacity
-              onPress={() => setShowExtraContacts((prev) => !prev)}
-              className="flex-row items-center justify-between mb-2"
-            >
-              <Text className="text-base font-semibold text-gray-800">
-                Ek İletişim Bilgileri (İsteğe bağlı)
-              </Text>
-              <Text className="text-xl text-gray-500">
-                {showExtraContacts ? "▲" : "▼"}
-              </Text>
-            </TouchableOpacity>
+            <TextInput
+              placeholder="E-posta"
+              placeholderTextColor={placeholderColor}
+              keyboardType="email-address"
+              value={personalInfo.email || ""}
+              onChangeText={(t) =>
+                setPersonalInfo({ ...personalInfo, email: t })
+              }
+              className="rounded-xl p-3 mb-3"
+              style={{
+                borderWidth: 1,
+                borderColor: theme.colors.inputBorder,
+                backgroundColor: theme.colors.inputBg,
+                color: theme.colors.text,
+              }}
+            />
 
-            {showExtraContacts && (
-              <>
-                {(personalInfo.extraContacts || []).map(
-                  (item: any, index: number) => (
-                    <View
-                      key={`${item.label}-${index}`}
-                      className="flex-row items-center justify-between mb-2 bg-gray-100 rounded-xl px-3 py-2"
-                    >
-                      <View className="flex-1 mr-2">
-                        <Text className="text-sm font-semibold text-gray-800">
-                          {item.label}
-                        </Text>
-                        <Text
-                          className="text-xs text-gray-600"
-                          numberOfLines={1}
-                        >
-                          {item.value}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => handleRemoveExtraContact(index)}
-                        className="px-3 py-1 rounded-full bg-red-100"
-                      >
-                        <Text className="text-xs font-semibold text-red-600">
-                          Sil
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  )
-                )}
+            {/* 💼 Meslek / Başlık (headline) */}
+            <TextInput
+              placeholder="Mesleğin / Başlığın (Örn: Full Stack Mobil & Web Geliştirici)"
+              placeholderTextColor={placeholderColor}
+              value={personalInfo.headline || ""}
+              onChangeText={(t) =>
+                setPersonalInfo({ ...personalInfo, headline: t })
+              }
+              className="rounded-xl p-3 mb-3"
+              style={{
+                borderWidth: 1,
+                borderColor: theme.colors.inputBorder,
+                backgroundColor: theme.colors.inputBg,
+                color: theme.colors.text,
+              }}
+            />
 
-                <Text className="text-sm text-gray-700 mt-3 mb-1">
-                  Farklı bir iletişim eklemek istiyorum
-                </Text>
+            {/* 📍 Konum */}
+            <TextInput
+              placeholder="Konum (Örn: İstanbul, Türkiye)"
+              placeholderTextColor={placeholderColor}
+              value={personalInfo.location || ""}
+              onChangeText={(t) =>
+                setPersonalInfo({ ...personalInfo, location: t })
+              }
+              className="rounded-xl p-3 mb-5"
+              style={{
+                borderWidth: 1,
+                borderColor: theme.colors.inputBorder,
+                backgroundColor: theme.colors.inputBg,
+                color: theme.colors.text,
+              }}
+            />
 
-                <TextInput
-                  placeholder="İletişim Adı (Örn: Telegram, Kişisel Site, Behance)"
-                  placeholderTextColor={placeholderColor}
-                  value={newContactLabel}
-                  onChangeText={setNewContactLabel}
-                  className="border border-gray-300 rounded-xl p-3 mb-2 text-sm"
-                />
-
-                <TextInput
-                  placeholder="Bağlantı veya bilgi (Örn: https://t.me/kullanici)"
-                  placeholderTextColor={placeholderColor}
-                  value={newContactValue}
-                  onChangeText={setNewContactValue}
-                  className="border border-gray-300 rounded-xl p-3 mb-2 text-sm"
-                />
-
-                <TouchableOpacity
-                  onPress={handleAddExtraContact}
-                  className="self-start px-4 py-2 rounded-xl bg-cyan-600 mt-1"
+            {/* 🔗 Ekstra İletişim Bilgileri */}
+            <View className="mb-6">
+              <TouchableOpacity
+                onPress={() => setShowExtraContacts((prev) => !prev)}
+                className="flex-row items-center justify-between mb-2"
+              >
+                <Text
+                  className="text-base font-semibold"
+                  style={{ color: theme.colors.text }}
                 >
-                  <Text className="text-white text-sm font-semibold">
-                    Ekstra İletişim Ekle
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
+                  Ek İletişim Bilgileri (İsteğe bağlı)
+                </Text>
+                <Text
+                  className="text-xl"
+                  style={{ color: theme.colors.mutedText }}
+                >
+                  {showExtraContacts ? "▲" : "▼"}
+                </Text>
+              </TouchableOpacity>
 
-          {/* ✅ Devam Et Butonu (zorunlu sayfa) */}
-          <ContinueButton
-            onPress={handleNext}
-            loading={loading}
-            isOptional={false}
-            isValid={isFormValid}
-          />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+              {showExtraContacts && (
+                <>
+                  {(personalInfo.extraContacts || []).map(
+                    (item: any, index: number) => (
+                      <View
+                        key={`${item.label}-${index}`}
+                        className="flex-row items-center justify-between mb-2 rounded-xl px-3 py-2"
+                        style={{ backgroundColor: theme.colors.card }}
+                      >
+                        <View className="flex-1 mr-2">
+                          <Text
+                            className="text-sm font-semibold"
+                            style={{ color: theme.colors.text }}
+                          >
+                            {item.label}
+                          </Text>
+                          <Text
+                            className="text-xs"
+                            numberOfLines={1}
+                            style={{ color: theme.colors.mutedText }}
+                          >
+                            {item.value}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => handleRemoveExtraContact(index)}
+                          className="px-3 py-1 rounded-full"
+                          style={{ backgroundColor: "#FEE2E2" }}
+                        >
+                          <Text className="text-xs font-semibold text-red-600">
+                            Sil
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )
+                  )}
+
+                  <Text
+                    className="text-sm mt-3 mb-1"
+                    style={{ color: theme.colors.mutedText }}
+                  >
+                    Farklı bir iletişim eklemek istiyorum
+                  </Text>
+
+                  <TextInput
+                    placeholder="İletişim Adı (Örn: Telegram, Kişisel Site, Behance)"
+                    placeholderTextColor={placeholderColor}
+                    value={newContactLabel}
+                    onChangeText={setNewContactLabel}
+                    className="rounded-xl p-3 mb-2 text-sm"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: theme.colors.inputBorder,
+                      backgroundColor: theme.colors.inputBg,
+                      color: theme.colors.text,
+                    }}
+                  />
+
+                  <TextInput
+                    placeholder="Bağlantı veya bilgi (Örn: https://t.me/kullanici)"
+                    placeholderTextColor={placeholderColor}
+                    value={newContactValue}
+                    onChangeText={setNewContactValue}
+                    className="rounded-xl p-3 mb-2 text-sm"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: theme.colors.inputBorder,
+                      backgroundColor: theme.colors.inputBg,
+                      color: theme.colors.text,
+                    }}
+                  />
+
+                  <TouchableOpacity
+                    onPress={handleAddExtraContact}
+                    className="self-start px-4 py-2 rounded-xl mt-1"
+                    style={{ backgroundColor: theme.colors.primary }}
+                  >
+                    <Text className="text-white text-sm font-semibold">
+                      Ekstra İletişim Ekle
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+
+            {/* ✅ Devam Et Butonu */}
+            <ContinueButton
+              onPress={handleNext}
+              loading={loading}
+              isOptional={false}
+              isValid={isFormValid}
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
-

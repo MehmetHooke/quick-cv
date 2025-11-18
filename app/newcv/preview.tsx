@@ -1,10 +1,11 @@
 // app/newcv/preview.tsx
 import { useCV } from "@/context/CVContext";
+import { useTheme } from "@/context/ThemeContext";
 import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ImageBackground, Text, TouchableOpacity, View } from "react-native";
 
 // 🔁 Artık tek bir preview component'i kullanıyoruz
 import PreviewCV from "@/components/cvThemes/PreviewCV";
@@ -26,6 +27,7 @@ export default function PreviewScreen() {
   const [cv, setCv] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const fetchCV = async () => {
@@ -126,16 +128,30 @@ export default function PreviewScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <ImageBackground
+      source={theme.bgImage}
+      style={{ flex: 1 }}
+      resizeMode="cover"
+    >
+      <View 
+      className="flex-1 items-center justify-center ">
         <ActivityIndicator size="large" color="#06b6d4" />
-        <Text className="text-gray-500 mt-3">Yükleniyor...</Text>
+        <Text 
+        style={{ color: theme.colors.text }}
+        className=" mt-3 text-2xl">Yükleniyor...</Text>
       </View>
+      </ImageBackground>
     );
   }
 
   return (
+    <ImageBackground
+    source={theme.bgImage}
+    className="flex-1"
+    resizeMode="cover"
+    >
     <View className="flex-1 bg-current px-5 py-6 mt-6">
-      <Text className="text-3xl font-bold color-primary text-center mb-4">
+      <Text style={{ color: theme.colors.primary }} className="text-3xl font-bold text-center mb-4">
         Bilgi Önizleme
       </Text>
 
@@ -179,5 +195,6 @@ export default function PreviewScreen() {
         </TouchableOpacity>
       </View>
     </View>
+    </ImageBackground>
   );
 }

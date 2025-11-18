@@ -1,20 +1,24 @@
+// app/(tabs)/index.tsx
+import CVCard from "@/components/CVCard";
+import { useCV } from "@/context/CVContext";
+import { useTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
-  Image,
+  ImageBackground,
   Modal,
   Pressable,
   Text,
   View,
 } from "react-native";
-// 🔁 Yeni Gesture API
-import CVCard from "@/components/CVCard";
-import { useCV } from "@/context/CVContext";
-import { useRouter } from "expo-router";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 
 const { width, height } = Dimensions.get("window");
 
@@ -38,8 +42,7 @@ const templates = [
     description: "Kurumsal ve sade bir tasarım isteyenler için.",
     image: require("@/assets/templates/minimal.png"),
   },
-
-    {
+  {
     id: "pinkModern",
     name: "Pembe Modern",
     description: "Pembe, modern ve profesyonel CV şablonu.",
@@ -48,23 +51,24 @@ const templates = [
   {
     id: "navyBlueModern",
     name: "Açık Mavi Modern CV",
-    description: "Kurumsal ve sade mavi temada bir tasarım isteyenler için.",
+    description:
+      "Kurumsal ve sade mavi temada bir tasarım isteyenler için.",
     image: require("@/assets/templates/navybluemodern.png"),
   },
   {
     id: "tealWave",
     name: "Teal Wave",
-    description: "Sol tarafta pastel mavi panel, sağda dalgalı başlık alanı ile modern ve sade satır aralığı yüksek bir CV tasarımı. Özellikle teknik ve kreatif adaylar için şık bir görünüm sunar",
+    description:
+      "Sol tarafta pastel mavi panel, sağda dalgalı başlık alanı ile modern ve sade satır aralığı yüksek bir CV tasarımı. Özellikle teknik ve kreatif adaylar için şık bir görünüm sunar",
     image: require("@/assets/templates/tealwave.png"),
   },
-
-  
 ];
 
 export default function HomeScreen() {
   const [selected, setSelected] = useState<(typeof templates)[0] | null>(null);
   const router = useRouter();
   const { updateCV } = useCV();
+  const { theme } = useTheme();
 
   // 🧭 Modal kapandıktan sonra çalıştırılacak navigasyon fonksiyonu
   const pendingNavRef = useRef<null | (() => void)>(null);
@@ -114,7 +118,7 @@ export default function HomeScreen() {
     router.push("/newcv/personal-info");
   };
 
-  // 🔹 Modal içindeki "Bu Temayı Kullan" (önce modal kapanacak → onDismiss sonra push)
+  // 🔹 Modal içindeki "Bu Temayı Kullan"
   const handleUseThemeFromModal = () => {
     if (!selected) return;
     updateCV("theme", selected.id as any);
@@ -148,9 +152,10 @@ export default function HomeScreen() {
       const dx = e.focalX - cx;
       const dy = e.focalY - cy;
 
-      // Focal'e göre çeviri düzeltmesi
-      translateX.value = savedTranslateX.value + dx - dx * (nextScale / savedScale.value);
-      translateY.value = savedTranslateY.value + dy - dy * (nextScale / savedScale.value);
+      translateX.value =
+        savedTranslateX.value + dx - dx * (nextScale / savedScale.value);
+      translateY.value =
+        savedTranslateY.value + dy - dy * (nextScale / savedScale.value);
 
       scale.value = nextScale;
       boundTranslations();
@@ -174,83 +179,104 @@ export default function HomeScreen() {
   }));
 
   const renderItem = ({ item }: { item: (typeof templates)[0] }) => (
-    <CVCard item={item} variant="grid" onPreview={() => setSelected(item)} onUse={handleUseThemeDirect}  />
+    <CVCard
+      item={item}
+      variant="grid"
+      onPreview={() => setSelected(item)}
+      onUse={handleUseThemeDirect}
+    />
   );
 
   return (
-    <View className="flex-1 bg-[#f5f5f5]">
-      {/* 🔹 Arka plan */}
-      <Image
-        source={require("@/assets/images/profile-bg.png")}
-        className="absolute w-full h-full"
-        resizeMode="cover"
-      />
+    <ImageBackground
+      source={theme.bgImage}
+      style={{ flex: 1 }}
+      resizeMode="cover"
+    >
+      <View className="flex-1">
+        {/* Başlık */}
+        <Text
+          className="text-2xl font-extrabold text-white text-center mt-16 mb-7"
+          
+        >
+          CV Tasarımları
+        </Text>
 
-      {/* Başlık */}
-      <Text className="text-2xl font-extrabold text-white text-center mt-16 mb-4">
-        CV Tasarımları
-      </Text>
-
-      {/* CV Kartları */}
-      <FlatList
-        data={templates}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        numColumns={2}                 // ⬅️ Burayı ekle!
-        columnWrapperStyle={{          // ⬅️ Sütunlar arasında boşluk
-          justifyContent: "space-between",
-          paddingHorizontal: 10,
+        {/* CV Kartları */}
+        <FlatList
+          data={templates}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          numColumns={2}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+            paddingHorizontal: 10,
           }}
-        contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 10 }}
-      />
+          contentContainerStyle={{
+            paddingBottom: 120,
+            paddingHorizontal: 10,
+          }}
+        />
 
-      {/* Önizleme Modal */}
-      <Modal
-        visible={!!selected}
-        animationType="fade"
-        transparent
-        onShow={() => {
-          // Her açılışta transform’u sıfırla
-          resetTransform();
-        }}
-        onDismiss={() => {
-          // Modal kapandıktan sonra gerekiyorsa yönlendir
-          if (pendingNavRef.current) {
-            pendingNavRef.current();
-            pendingNavRef.current = null;
-          }
-        }}
-      >
-        <View className="flex-1 bg-black/85 justify-center items-center px-5">
-          <View className="w-full items-end mb-4">
+        {/* Önizleme Modal */}
+        <Modal
+          visible={!!selected}
+          animationType="fade"
+          transparent
+          onShow={() => {
+            resetTransform();
+          }}
+          onDismiss={() => {
+            if (pendingNavRef.current) {
+              pendingNavRef.current();
+              pendingNavRef.current = null;
+            }
+          }}
+        >
+          <View className="flex-1 bg-black/85 justify-center items-center px-5">
+            <View className="w-full items-end mb-4">
+              <Pressable
+                onPress={() => setSelected(null)}
+                className="flex-row items-center rounded-lg px-5 py-2"
+                style={{ backgroundColor: theme.colors.primary }}
+              >
+                <Ionicons name="close" size={22} color="white" />
+                <Text className="text-white text-lg font-semibold ml-2">
+                  Kapat
+                </Text>
+              </Pressable>
+            </View>
+
+            {/* 🔍 Pinch + Pan + Double-Tap */}
+            <GestureDetector gesture={composedGesture}>
+              <Animated.Image
+                source={selected?.image}
+                style={[
+                  {
+                    width: IMG_W,
+                    height: IMG_H,
+                    borderRadius: 12,
+                  },
+                  previewStyle,
+                ]}
+                resizeMode="contain"
+              />
+            </GestureDetector>
+
             <Pressable
-              onPress={() => setSelected(null)}
-              className="flex-row items-center bg-[#0C94B9] rounded-lg px-5 py-2"
+              onPress={handleUseThemeFromModal}
+              className="mt-6 rounded-lg px-8 py-4"
+              style={{ backgroundColor: theme.colors.primary }}
+              disabled={!selected}
             >
-              <Ionicons name="close" size={22} color="white" />
-              <Text className="text-white text-lg font-semibold ml-2">Kapat</Text>
+              <Text className="text-white text-lg font-semibold">
+                Bu Temayı Kullan
+              </Text>
             </Pressable>
           </View>
-
-          {/* 🔍 Pinch + Pan + Double-Tap */}
-          <GestureDetector gesture={composedGesture}>
-            <Animated.Image
-              source={selected?.image}
-              style={[{ width: IMG_W, height: IMG_H, borderRadius: 12 }, previewStyle]}
-              resizeMode="contain"
-            />
-          </GestureDetector>
-
-          <Pressable
-            onPress={handleUseThemeFromModal}
-            className="mt-6 bg-[#0C94B9] rounded-lg px-8 py-4"
-            disabled={!selected}
-          >
-            <Text className="text-white text-lg font-semibold">Bu Temayı Kullan</Text>
-          </Pressable>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </ImageBackground>
   );
 }

@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeContext";
 import React from "react";
 import { Dimensions, Image, Pressable, Text, View } from "react-native";
 
@@ -7,9 +8,8 @@ type Props = {
   item: { id: string; name: string; description: string; image: any };
   onPreview?: (item: any) => void;
   onUse?: (item: any) => void;
-  variant?: "full" | "grid"; // 🔹 full = tek sütun, grid = 2 sütun
+  variant?: "full" | "grid"; // full = tek sütun, grid = 2 sütun
 };
-
 
 export default function CVCard({
   item,
@@ -17,61 +17,107 @@ export default function CVCard({
   onUse,
   variant = "full",
 }: Props) {
+  // 🔹 Global tema
+  const { theme } = useTheme();
 
-  const { width } = Dimensions.get("window");
-
-  // 🔹 Tek sütun görünümde eski davranış:
-  const fullWidth = width * 0.9;
-
-  // 🔹 Grid görünüm için (2 sütun, kenarlarda padding ve arada gap varmış gibi düşünelim)
+  // 🔹 Kart genişliği hesaplama
   const horizontalPadding = 20; // FlatList columnWrapperStyle ile uyumlu
   const gap = 12;
+
+  const fullWidth = width * 0.9;
   const gridWidth = (width - horizontalPadding * 2 - gap) / 2;
 
   const cardWidth = variant === "grid" ? gridWidth : fullWidth;
-  const imageHeight = cardWidth * 1.4;
-  return (
-      <View
-        className="bg-white rounded-2xl shadow-sm shadow-primary p-4 mb-6 flex-col justify-between"
-        style={{
-          width: cardWidth,
-          alignSelf: variant === "grid" ? "auto" : "center",
-          minHeight: 350, // 🔥 butonu sabit aşağıda tutar
-        }}
-      >
 
+  // 🔹 Görsel oranı — biraz daha kompakt yapalım ki boşluk hissi azalsın
+  const imageHeight = cardWidth * (variant === "grid" ? 1.2 : 1.3);
+
+  // 🔹 Grid kartları için biraz daha kısa minHeight
+  const minHeight = variant === "grid" ? 280 : 350;
+
+  const isUsable = !!onUse;
+
+  return (
+    <View
+      className="rounded-2xl mb-6 flex-col justify-between"
+      style={{
+        width: cardWidth,
+        alignSelf: variant === "grid" ? "auto" : "center",
+        minHeight,
+        // Tema uyumlu kart stili
+        backgroundColor: theme.colors.card,
+        borderWidth: 1,
+        borderColor: theme.colors.inputBorder,
+        shadowColor: "#000",
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 3,
+        padding: 12,
+      }}
+    >
       {/* CV Görseli */}
       <Pressable onPress={() => onPreview?.(item)}>
-        <Image
-          source={item.image}
-          style={{ width: "100%", height: imageHeight, borderRadius: 12 }}
-          resizeMode="contain"
-        />
+        <View
+          style={{
+            width: "100%",
+            height: imageHeight,
+            borderRadius: 14,
+            overflow: "hidden", // 🔥 Kenarlardaki boşluk algısını azaltmak için crop
+            backgroundColor: theme.colors.inputBg,
+          }}
+        >
+          <Image
+            source={item.image}
+            style={{ width: "100%", height: "100%" }}
+            // Daha dolu görünmesi için cover — detay için zaten modalda büyük önizleme var
+            resizeMode="cover"
+          />
+        </View>
       </Pressable>
 
       {/* CV Adı */}
-      <Text className="text-[#0C94B9] font-extrabold text-md mt-3 text-center">
+      <Text
+        className="font-extrabold text-md mt-3 text-center"
+        style={{ color: theme.colors.primary }}
+        numberOfLines={2}
+      >
         {item.name}
       </Text>
 
       {/* Açıklama */}
-      <Text className="text-gray-600 text-xs text-center mt-1">
+      <Text
+        className="text-xs text-center mt-1"
+        style={{ color: theme.colors.mutedText }}
+        numberOfLines={3}
+      >
         {item.description}
       </Text>
 
       {/* Buton */}
       <Pressable
-        onPress={() => onUse?.(item)}          // ✅ çalıştır
-        disabled={!onUse}                      // (opsiyonel güvenlik)
-        className={`mt-4 rounded-lg py-2 px-4 self-center flex-row items-center
-          ${onUse ? "bg-[#0C94B9]" : "bg-gray-300"}`}
+        onPress={() => onUse?.(item)}
+        disabled={!isUsable}
+        style={{
+          marginTop: 10,
+          borderRadius: 999,
+          paddingVertical: 8,
+          paddingHorizontal: 16,
+          alignSelf: "center",
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: isUsable
+            ? theme.colors.primary
+            : theme.colors.inputBorder,
+          opacity: isUsable ? 1 : 0.7,
+        }}
       >
         <Text className="text-white text-sm font-semibold mr-2">
           Temayı Seç
         </Text>
         <Image
           source={require("@/assets/icons/chevron-right.png")}
-          className="w-4 h-4"
+          style={{ width: 16, height: 16 }}
           resizeMode="contain"
         />
       </Pressable>

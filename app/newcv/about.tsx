@@ -1,11 +1,13 @@
 import { ContinueButton } from "@/components/form/ContinueButton";
 import { useCV } from "@/context/CVContext";
+import { useTheme } from "@/context/ThemeContext";
 import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
   Alert,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -22,7 +24,7 @@ export default function AboutScreen() {
   const [loading, setLoading] = useState(false);
   //
   const isFormValid = about.trim().length > 0;
-
+  const { theme } = useTheme();
 
   const handleNext = async () => {
     try {
@@ -66,7 +68,12 @@ export default function AboutScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <ImageBackground
+    source={theme.bgImage}
+    className="flex-1"
+    resizeMode="cover"
+    >
+    <SafeAreaView className="flex-1 ">
           <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -79,13 +86,13 @@ export default function AboutScreen() {
               showsVerticalScrollIndicator={false}
             >
       <View className="items-center mb-6">
-        <Text className="text-2xl font-bold text-cyan-700 mb-1">
+        <Text className="text-2xl font-bold mb-1" style={{ color: theme.colors.primary }}>
           Kendini Tanıt
         </Text>
         <View className="h-1 w-1/3 bg-cyan-500 rounded-full" />
       </View>
 
-      <Text className="text-gray-500 text-sm mb-4 text-center">
+      <Text className="text-gray-500 text-sm mb-4 text-center" style={{ color: theme.colors.text }}>
         Bu bölümde kendini kısa ve etkili bir şekilde tanıt.{"\n"}
         CV’ni okuyan kişinin seni tanımasına yardımcı olacak birkaç cümle yaz.
       </Text>
@@ -93,11 +100,13 @@ export default function AboutScreen() {
       <TextInput
         placeholder={`Örnek:\nMerhaba, ben Mehmet. Bilgisayar mühendisliği mezunuyum ve mobil uygulama geliştirme konusunda tutkuluyum. React Native ve Firebase kullanarak projeler geliştiriyorum. Hedefim, kullanıcı deneyimini ön planda tutan yenilikçi yazılımlar üretmek.`}
         value={about}
+        placeholderTextColor={theme.colors.mutedText}
         onChangeText={setAbout}
         multiline
-        numberOfLines={8}
+        numberOfLines={12}
         textAlignVertical="top"
-        className="border p-3 border-gray-300 rounded-2xl p4 text-gray-700 mb-6"
+        className="border p-4  rounded-2xl py-8  mb-6"
+        style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
       />
 
       {/* ✅ Devam Et Butonu (zorunlu sayfa) */}
@@ -110,5 +119,6 @@ export default function AboutScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+    </ImageBackground>
   );
 }

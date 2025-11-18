@@ -1,5 +1,6 @@
 // app/components/cvThemes/PreviewCV.tsx
 import { tokens } from "@/constants/tokens";
+
 import React from "react";
 import { Image, ScrollView, Text, View } from "react-native";
 
@@ -62,6 +63,7 @@ type CVData = {
 
 // ---- Yardımcılar
 const hasArray = (arr?: unknown[]) => Array.isArray(arr) && arr.length > 0;
+
 const safeText = (v?: string | number | null) =>
   v === undefined || v === null ? "" : String(v);
 

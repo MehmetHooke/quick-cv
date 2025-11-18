@@ -1,8 +1,8 @@
+// app/(tabs)/_layout.tsx
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { ImageBackground, Text, View } from "react-native";
-
 
 const TabIcon = ({ focused, icon, title }: any) => {
   if (focused) {
@@ -39,7 +39,7 @@ export default function TabsLayout() {
           alignItems: "center",
         },
         tabBarStyle: {
-          backgroundColor: "#0C94B9", // QuicklyCV ana mavi tonu
+          backgroundColor: "#0C94B9",
           borderRadius: 17,
           marginHorizontal: 20,
           marginBottom: 40,
@@ -48,7 +48,7 @@ export default function TabsLayout() {
           overflow: "hidden",
           borderWidth: 1,
           borderColor: "#0C94B9",
-          elevation: 10, // Android için gölge
+          elevation: 10,
           shadowColor: "#000",
           shadowOpacity: 0.15,
           shadowRadius: 4,

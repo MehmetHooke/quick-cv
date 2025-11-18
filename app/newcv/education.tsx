@@ -6,6 +6,7 @@ import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
   Alert,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,6 +15,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { useTheme } from "@/context/ThemeContext";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type EducationItem = {
@@ -26,6 +30,8 @@ type EducationItem = {
 export default function EducationScreen() {
   const router = useRouter();
   const { cvData, updateCV } = useCV();
+  const { theme } = useTheme();
+
 
   const [educationList, setEducationList] = useState<EducationItem[]>(
     (cvData.education as EducationItem[]) || []
@@ -115,7 +121,12 @@ export default function EducationScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <ImageBackground
+    source={theme.bgImage}
+    style={{ flex: 1 }}
+    resizeMode="cover"
+    >
+    <SafeAreaView className="flex-1">
           <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -128,21 +139,21 @@ export default function EducationScreen() {
               showsVerticalScrollIndicator={false}
             >
       <View className="items-center mb-6">
-        <Text className="text-2xl font-bold text-cyan-700 mb-1">
+        <Text className="text-2xl font-bold" style={{ color: theme.colors.primary }}>
           Eğitim Bilgileri
         </Text>
-        <View className="h-1 w-1/3 bg-cyan-500 rounded-full" />
+        <View className="h-1 w-1/3 rounded-full" style={{ backgroundColor: theme.colors.primary }} />
       </View>
 
       {/* Açıklama */}
-      <Text className="text-sm text-gray-700 mb-4">
+      <Text className="text-sm" style={{ color: theme.colors.mutedText }}>
         Mezun olduğun veya devam ettiğin okulları ekleyebilirsin. Birden fazla
         eğitim bilgisi eklemek serbest.
       </Text>
 
       {/* Yeni eğitim ekleme alanı */}
       <View className="mb-6">
-        <Text className="text-sm text-gray-700 mb-2">
+        <Text className="text-sm" style={{ color: theme.colors.mutedText, marginBottom: 8 }}>
           Yeni eğitim eklemek istiyorum
         </Text>
 
@@ -151,7 +162,12 @@ export default function EducationScreen() {
           placeholderTextColor={placeholderColor}
           value={newEdu.school || ""}
           onChangeText={(t) => setNewEdu({ ...newEdu, school: t })}
-          className="border border-gray-300 rounded-xl p-3 mb-3 text-sm"
+          className="border rounded-xl p-3 mb-3 text-sm"
+          style={{
+            borderColor: theme.colors.inputBorder,
+            backgroundColor: theme.colors.inputBg,
+            color: theme.colors.text,
+          }}
         />
 
         <TextInput
@@ -159,7 +175,12 @@ export default function EducationScreen() {
           placeholderTextColor={placeholderColor}
           value={newEdu.department || ""}
           onChangeText={(t) => setNewEdu({ ...newEdu, department: t })}
-          className="border border-gray-300 rounded-xl p-3 mb-3 text-sm"
+          className="border rounded-xl p-3 mb-3 text-sm"
+          style={{
+            borderColor: theme.colors.inputBorder,
+            backgroundColor: theme.colors.inputBg,
+            color: theme.colors.text,
+          }}
         />
 
         <TextInput
@@ -167,7 +188,12 @@ export default function EducationScreen() {
           placeholderTextColor={placeholderColor}
           value={newEdu.year || ""}
           onChangeText={(t) => setNewEdu({ ...newEdu, year: t })}
-          className="border border-gray-300 rounded-xl p-3 mb-3 text-sm"
+          className="border rounded-xl p-3 mb-3 text-sm"
+          style={{
+            borderColor: theme.colors.inputBorder,
+            backgroundColor: theme.colors.inputBg,
+            color: theme.colors.text,
+          }}
         />
 
         <TextInput
@@ -175,12 +201,18 @@ export default function EducationScreen() {
           placeholderTextColor={placeholderColor}
           value={newEdu.grade || ""}
           onChangeText={(t) => setNewEdu({ ...newEdu, grade: t })}
-          className="border border-gray-300 rounded-xl p-3 mb-4 text-sm"
+          className="border  rounded-xl p-3 mb-4 text-sm"
+          style={{
+            borderColor: theme.colors.inputBorder,
+            backgroundColor: theme.colors.inputBg,
+            color: theme.colors.text,
+          }}
         />
 
         <TouchableOpacity
           onPress={addEducation}
-          className="self-center  px-12 py-3 rounded-xl bg-cyan-600"
+          style={{ backgroundColor: theme.colors.primary }}
+          className="self-center  px-12 py-3 rounded-xl"
         >
           <Text className="text-white text-sm font-semibold">
             Yeni Eğitim Ekle
@@ -192,22 +224,24 @@ export default function EducationScreen() {
       {educationList.map((item, index) => (
         <View
           key={`${item.school}-${item.department}-${index}`}
-          className="flex-row items-center justify-between mb-2 bg-gray-100 rounded-xl px-3 py-2"
+          style={{ backgroundColor: theme.colors.inputBg }}
+          className={`flex-row items-center justify-between mb-2 rounded-xl px-3 py-2`}
         >
           <View className="flex-1 mr-2">
-            <Text className="text-sm font-semibold text-gray-800">
+            <Text className="text-sm font-semibold" style={{ color: theme.colors.text }}>
               {item.school} - {item.department}
             </Text>
-            <Text className="text-xs text-gray-600">
+            <Text className="text-xs" style={{ color: theme.colors.mutedText }}>
               Mezuniyet: {item.year}
               {item.grade ? `  |  Ortalama: ${item.grade}` : ""}
             </Text>
           </View>
           <TouchableOpacity
             onPress={() => removeEducation(index)}
-            className="px-3 py-1 rounded-full bg-red-100"
+            className="px-3 py-1 rounded-full px-3"
+            style={{ backgroundColor: "#FEE2E2" }}
           >
-            <Text className="text-xs font-semibold text-red-600">Sil</Text>
+            <Text className="text-xs font-semibold text-red-800">Sil</Text>
           </TouchableOpacity>
         </View>
       ))}
@@ -223,5 +257,6 @@ export default function EducationScreen() {
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
+    </ImageBackground>
   );
 }

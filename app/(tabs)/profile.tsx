@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeContext";
 import { auth, db, storage } from "@/firebaseConfig";
 import * as ImagePicker from "expo-image-picker";
 import {
@@ -38,14 +39,14 @@ export default function ProfileScreen() {
   const [isThemeOpen, setIsThemeOpen] = useState(true);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
 
-  // 🔹 Sadece tasarım için local tema seçimi
-  const [selectedTheme, setSelectedTheme] = useState<"light" | "dark">("light");
-
   // 🔹 Şifre alanları
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordAgain, setNewPasswordAgain] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  // 🔹 Global tema
+  const { themeName, theme, setThemeName } = useTheme();
 
   // 🔹 Firestore'dan kullanıcı bilgilerini çek
   const fetchUserData = async () => {
@@ -111,33 +112,37 @@ export default function ProfileScreen() {
     }
   };
 
-  // 🌟 Tema seçeneği satırı (sadece UI)
-  const renderThemeOption = (
-    label: string,
-    value: "light" | "dark"
-  ) => (
-    <Pressable
-      key={value}
-      onPress={() => setSelectedTheme(value)}
-      className="flex-row items-center justify-between py-2 px-3 rounded-xl"
-      style={{ backgroundColor: "#F6F8FA" }}
-    >
-      <Text className="text-base text-[#1E1E1E] font-medium">{label}</Text>
-      <View
-        className="w-6 h-6 rounded-md border"
-        style={{
-          borderColor: selectedTheme === value ? "#0C94B9" : "#C4C4C4",
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: selectedTheme === value ? "#0C94B9" : "white",
-        }}
+  // 🌟 Tema seçeneği satırı
+  const renderThemeOption = (label: string, value: "light" | "dark") => {
+    const isActive = themeName === value;
+
+    return (
+      <Pressable
+        key={value}
+        onPress={() => setThemeName(value)}
+        className="flex-row items-center justify-between py-2 px-3 rounded-xl"
+        style={{ backgroundColor: theme.colors.inputBg }}
       >
-        {selectedTheme === value && (
-          <Text className="text-white text-xs">✓</Text>
-        )}
-      </View>
-    </Pressable>
-  );
+        <Text
+          className="text-base font-medium"
+          style={{ color: theme.colors.text }}
+        >
+          {label}
+        </Text>
+        <View
+          className="w-6 h-6 rounded-md border"
+          style={{
+            borderColor: isActive ? theme.colors.primary : theme.colors.inputBorder,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: isActive ? theme.colors.primary : "transparent",
+          }}
+        >
+          {isActive && <Text className="text-white text-xs">✓</Text>}
+        </View>
+      </Pressable>
+    );
+  };
 
   // 🔐 Şifremi değiştir – GERÇEK UYGULAMA
   const handleChangePassword = async () => {
@@ -148,19 +153,16 @@ export default function ProfileScreen() {
       return;
     }
 
-    // Boş alan kontrolü
     if (!oldPassword || !newPassword || !newPasswordAgain) {
       Alert.alert("Uyarı", "Lütfen tüm şifre alanlarını doldurun.");
       return;
     }
 
-    // Yeni şifre ile tekrar aynı mı?
     if (newPassword !== newPasswordAgain) {
       Alert.alert("Uyarı", "Yeni şifre ve tekrarı birbiriyle eşleşmiyor.");
       return;
     }
 
-    // Eski şifre ile aynı olamaz
     if (newPassword === oldPassword) {
       Alert.alert(
         "Uyarı",
@@ -169,29 +171,21 @@ export default function ProfileScreen() {
       return;
     }
 
-    // Min. uzunluk vs (Firebase auth/weak-password da yakalar ama UX için)
     if (newPassword.length < 6) {
-      Alert.alert(
-        "Uyarı",
-        "Yeni şifreniz en az 6 karakter olmalıdır."
-      );
+      Alert.alert("Uyarı", "Yeni şifreniz en az 6 karakter olmalıdır.");
       return;
     }
 
     try {
       setIsChangingPassword(true);
 
-      // 1️⃣ Eski şifreyle yeniden kimlik doğrulama (reauthenticate)
       const credential = EmailAuthProvider.credential(
         user.email,
         oldPassword
       );
       await reauthenticateWithCredential(user, credential);
-
-      // 2️⃣ Şifreyi güncelle
       await updatePassword(user, newPassword);
 
-      // 3️⃣ Inputları temizle
       setOldPassword("");
       setNewPassword("");
       setNewPasswordAgain("");
@@ -200,14 +194,16 @@ export default function ProfileScreen() {
     } catch (error: any) {
       console.log("Şifre değiştirme hatası:", error);
 
-      // Firebase hata kodlarına göre mesaj
       if (
         error.code === "auth/wrong-password" ||
         error.code === "auth/invalid-credential"
       ) {
         Alert.alert("Hata", "Eski şifrenizi hatalı girdiniz.");
       } else if (error.code === "auth/weak-password") {
-        Alert.alert("Hata", "Yeni şifre çok zayıf. Lütfen daha güçlü bir şifre deneyin.");
+        Alert.alert(
+          "Hata",
+          "Yeni şifre çok zayıf. Lütfen daha güçlü bir şifre deneyin."
+        );
       } else if (error.code === "auth/requires-recent-login") {
         Alert.alert(
           "Güvenlik Uyarısı",
@@ -226,7 +222,7 @@ export default function ProfileScreen() {
 
   return (
     <ImageBackground
-      source={require("@/assets/images/profile-bg.png")}
+      source={theme.bgImage}
       style={{ flex: 1, width: "100%", height: "100%" }}
       resizeMode="cover"
     >
@@ -259,7 +255,7 @@ export default function ProfileScreen() {
                   height: 96,
                   borderRadius: 48,
                   borderWidth: 2,
-                  borderColor: "#0C94B9",
+                  borderColor: theme.colors.primary,
                 }}
               />
             </Pressable>
@@ -267,15 +263,15 @@ export default function ProfileScreen() {
             {/* İsim & e-posta */}
             <View style={{ marginLeft: 16, flex: 1 }}>
               <Text
-                className="font-extrabold text-[#000]"
-                style={{ fontSize: 24 }}
+                className="font-extrabold"
+                style={{ fontSize: 24, color: theme.colors.text }}
                 numberOfLines={1}
               >
                 {userData?.firstName || ""} {userData?.lastName || ""}
               </Text>
               <Text
-                className="text-[#1E1E1E] font-medium mt-1"
-                style={{ fontSize: 14 }}
+                className="font-medium mt-1"
+                style={{ fontSize: 14, color: theme.colors.mutedText }}
                 numberOfLines={1}
               >
                 {userData?.email || ""}
@@ -293,7 +289,7 @@ export default function ProfileScreen() {
             {/* Tema Modu Kartı */}
             <View
               style={{
-                backgroundColor: "white",
+                backgroundColor: theme.colors.card,
                 borderRadius: 24,
                 paddingVertical: 16,
                 paddingHorizontal: 16,
@@ -309,31 +305,34 @@ export default function ProfileScreen() {
                 onPress={() => setIsThemeOpen((prev) => !prev)}
                 className="flex-row items-center justify-between"
               >
-                <Text className="text-lg font-semibold text-[#1E1E1E]">
+                <Text
+                  className="text-lg font-semibold"
+                  style={{ color: theme.colors.text }}
+                >
                   Tema Modu
                 </Text>
-                <Text className="text-xl text-[#0C94B9]">
+                <Text
+                  className="text-xl"
+                  style={{ color: theme.colors.primary }}
+                >
                   {isThemeOpen ? "▲" : "▼"}
                 </Text>
               </Pressable>
 
               {isThemeOpen && (
                 <View className="mt-4 space-y-4">
-                  <View className="">
-                    {renderThemeOption("Açık", "light")}
-                  </View>
+                  <View>{renderThemeOption("Açık", "light")}</View>
                   <View className="mt-3">
                     {renderThemeOption("Koyu", "dark")}
                   </View>
                 </View>
-                
               )}
             </View>
 
             {/* Şifremi Değiştir Kartı */}
             <View
               style={{
-                backgroundColor: "white",
+                backgroundColor: theme.colors.card,
                 borderRadius: 24,
                 paddingVertical: 16,
                 paddingHorizontal: 16,
@@ -348,10 +347,16 @@ export default function ProfileScreen() {
                 onPress={() => setIsPasswordOpen((prev) => !prev)}
                 className="flex-row items-center justify-between"
               >
-                <Text className="text-lg font-semibold text-[#1E1E1E]">
+                <Text
+                  className="text-lg font-semibold"
+                  style={{ color: theme.colors.text }}
+                >
                   Şifremi Değiştir
                 </Text>
-                <Text className="text-xl text-[#0C94B9]">
+                <Text
+                  className="text-xl"
+                  style={{ color: theme.colors.primary }}
+                >
                   {isPasswordOpen ? "▲" : "▼"}
                 </Text>
               </Pressable>
@@ -359,7 +364,10 @@ export default function ProfileScreen() {
               {isPasswordOpen && (
                 <View className="mt-4">
                   {/* Eski Şifre */}
-                  <Text className="text-sm text-[#454545] mb-1">
+                  <Text
+                    className="text-sm mb-1"
+                    style={{ color: theme.colors.mutedText }}
+                  >
                     Eski Şifre
                   </Text>
                   <TextInput
@@ -372,15 +380,19 @@ export default function ProfileScreen() {
                       height: 44,
                       borderRadius: 12,
                       borderWidth: 1,
-                      borderColor: "#E3E6EA",
+                      borderColor: theme.colors.inputBorder,
                       paddingHorizontal: 12,
-                      backgroundColor: "#F6F8FA",
+                      backgroundColor: theme.colors.inputBg,
                       marginBottom: 12,
+                      color: theme.colors.text,
                     }}
                   />
 
                   {/* Yeni Şifre */}
-                  <Text className="text-sm text-[#454545] mb-1">
+                  <Text
+                    className="text-sm mb-1"
+                    style={{ color: theme.colors.mutedText }}
+                  >
                     Yeni Şifre
                   </Text>
                   <TextInput
@@ -393,15 +405,19 @@ export default function ProfileScreen() {
                       height: 44,
                       borderRadius: 12,
                       borderWidth: 1,
-                      borderColor: "#E3E6EA",
+                      borderColor: theme.colors.inputBorder,
                       paddingHorizontal: 12,
-                      backgroundColor: "#F6F8FA",
+                      backgroundColor: theme.colors.inputBg,
                       marginBottom: 12,
+                      color: theme.colors.text,
                     }}
                   />
 
                   {/* Yeni Şifre Tekrar */}
-                  <Text className="text-sm text-[#454545] mb-1">
+                  <Text
+                    className="text-sm mb-1"
+                    style={{ color: theme.colors.mutedText }}
+                  >
                     Yeni Şifre Tekrar
                   </Text>
                   <TextInput
@@ -414,10 +430,11 @@ export default function ProfileScreen() {
                       height: 44,
                       borderRadius: 12,
                       borderWidth: 1,
-                      borderColor: "#E3E6EA",
+                      borderColor: theme.colors.inputBorder,
                       paddingHorizontal: 12,
-                      backgroundColor: "#F6F8FA",
+                      backgroundColor: theme.colors.inputBg,
                       marginBottom: 16,
+                      color: theme.colors.text,
                     }}
                   />
 
@@ -429,7 +446,7 @@ export default function ProfileScreen() {
                       width: "100%",
                       height: 48,
                       borderRadius: 24,
-                      backgroundColor: "#0C94B9",
+                      backgroundColor: theme.colors.primary,
                       opacity: isChangingPassword ? 0.7 : 1,
                       flexDirection: "row",
                       justifyContent: "center",
@@ -437,7 +454,9 @@ export default function ProfileScreen() {
                     }}
                   >
                     <Text className="text-white text-[16px] font-medium mr-2">
-                      {isChangingPassword ? "Değiştiriliyor..." : "Şifremi Değiştir"}
+                      {isChangingPassword
+                        ? "Değiştiriliyor..."
+                        : "Şifremi Değiştir"}
                     </Text>
                     {!isChangingPassword && (
                       <Text className="text-white text-lg">✓</Text>
@@ -455,7 +474,7 @@ export default function ProfileScreen() {
                 height: 52,
                 marginTop: 32,
                 borderRadius: 26,
-                backgroundColor: "#0C94B9",
+                backgroundColor: theme.colors.logoutButtonBg,
                 flexDirection: "row",
                 justifyContent: "center",
                 alignItems: "center",
