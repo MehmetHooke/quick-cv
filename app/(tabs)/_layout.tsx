@@ -1,15 +1,18 @@
 // app/(tabs)/_layout.tsx
+import { useTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { ImageBackground, Text, View } from "react-native";
+
+
 
 const TabIcon = ({ focused, icon, title }: any) => {
   if (focused) {
     return (
       <ImageBackground
         source={require("../../assets/images/navigation-bg.png")}
-        className="flex flex-row w-full min-w-[142px] min-h-[75px] mt-5 justify-center items-center rounded-full overflow-hidden"
+        className="flex flex-row w-full min-w-[142px] min-h-[64px] mt-6 justify-center items-center rounded-full overflow-hidden"
         resizeMode="stretch"
       >
         <Ionicons name={icon} size={20} color="#FFFFFF" />
@@ -28,7 +31,11 @@ const TabIcon = ({ focused, icon, title }: any) => {
 };
 
 export default function TabsLayout() {
+
+  const { theme } = useTheme();
   return (
+
+    
     <Tabs
       screenOptions={{
         tabBarShowLabel: false,
@@ -39,7 +46,7 @@ export default function TabsLayout() {
           alignItems: "center",
         },
         tabBarStyle: {
-          backgroundColor: "#0C94B9",
+          backgroundColor: theme.colors.navigationbar,
           borderRadius: 17,
           marginHorizontal: 20,
           marginBottom: 40,

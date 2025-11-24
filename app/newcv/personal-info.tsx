@@ -22,6 +22,8 @@ import { ContinueButton } from "@/components/form/ContinueButton";
 import { useTheme } from "@/context/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import BackButton from "@/components/common/BackButton";
+
 export default function PersonalInfoScreen() {
   const router = useRouter();
   const { cvData, updateCV } = useCV();
@@ -155,17 +157,22 @@ export default function PersonalInfoScreen() {
         extraContacts: personalInfo.extraContacts || [],
       };
 
+      // Context'teki personalInfo'yu güncelle
       updateCV("personalInfo", finalPersonalInfo);
+
+      // 🔥 cvData içinden id'yi ayırıyoruz ki Firestore'a gitmesin
+      const { id, ...restCvData } = cvData;
 
       // Firestore’da kullanıcı altına CV kaydı
       const cvRef = collection(db, "users", user.uid, "cvs");
       const docRef = await addDoc(cvRef, {
-        ...cvData,
+        ...restCvData,                // id hariç diğer her şey
         personalInfo: finalPersonalInfo,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
+      // Artık gerçek Firestore id'sini context'e yaz
       updateCV("id", docRef.id);
 
       setLoading(false);
@@ -177,6 +184,7 @@ export default function PersonalInfoScreen() {
     }
   };
 
+
   const placeholderColor = "#9CA3AF";
 
   return (
@@ -185,18 +193,14 @@ export default function PersonalInfoScreen() {
       style={{ flex: 1 }}
       resizeMode="cover"
     >
+      <BackButton />
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
         >
-          <ScrollView
-            className="flex-1 px-5 py-8 mt-5"
-            contentContainerStyle={{ paddingBottom: 40 }}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
+
             <View className="items-center mb-6">
               <Text
                 className="text-2xl font-bold mb-1"
@@ -209,7 +213,12 @@ export default function PersonalInfoScreen() {
                 style={{ backgroundColor: theme.colors.primary }}
               />
             </View>
-
+          <ScrollView
+            className="flex-1 px-5 py-8 mt-5"
+            contentContainerStyle={{ paddingBottom: 40 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             {/* 📷 Fotoğraf */}
 {personalInfo.photo ? (
   // 📌 Fotoğraf varsa → sadece yuvarlak fotoğraf göster + tıklanabilir
@@ -461,7 +470,7 @@ export default function PersonalInfoScreen() {
                   <TouchableOpacity
                     onPress={handleAddExtraContact}
                     className="self-start px-4 py-2 rounded-xl mt-1"
-                    style={{ backgroundColor: theme.colors.primary }}
+                    style={{ backgroundColor: theme.colors.buttonBg }}
                   >
                     <Text className="text-white text-sm font-semibold">
                       Ekstra İletişim Ekle

@@ -1,9 +1,11 @@
 // app/newcv/skills.tsx
+import BackButton from "@/components/common/BackButton";
 import { useCV } from "@/context/CVContext";
 import { useTheme } from "@/context/ThemeContext";
 import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
+
 import React, { useState } from "react";
 import {
   Alert,
@@ -111,6 +113,7 @@ export default function SkillsScreen() {
     style={{ flex: 1 }}
     resizeMode="cover"
     >
+      <BackButton />
     <SafeAreaView className="flex-1 ">
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -134,14 +137,14 @@ export default function SkillsScreen() {
         <View className="h-1 w-1/3  rounded-full" style={{ backgroundColor: theme.colors.primary }} />
       </View>
 
-      <Text className="text-sm  mb-4" style={{ color: theme.colors.text }}>
+      <Text className="text-base mb-4" style={{ color: theme.colors.text }}>
         Teknik ve kişisel yeteneklerini buraya ekleyebilirsin. Örn: React
         Native, Flutter, İletişim, Takım Çalışması...
       </Text>
 
       {/* Yeni yetenek ekleme alanı */}
       <View className="mb-6">
-        <Text className="text-sm  mb-2" style={{ color: theme.colors.text }}>
+        <Text className="text-base mb-2" style={{ color: theme.colors.text }}>
           Yeni yetenek eklemek istiyorum
         </Text>
 
@@ -151,7 +154,7 @@ export default function SkillsScreen() {
           value={newSkill.name || ""}
           onChangeText={(t) => setNewSkill({ ...newSkill, name: t })}
           style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="border   rounded-xl p-3 mb-3 text-sm"
+          className="   rounded-xl p-3 mb-3 text-sm"
         />
 
         <TextInput
@@ -160,7 +163,7 @@ export default function SkillsScreen() {
           value={newSkill.level || ""}
           onChangeText={(t) => setNewSkill({ ...newSkill, level: t })}
           style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="border  rounded-xl p-3 mb-4 text-sm"
+          className="  rounded-xl p-3 mb-4 text-sm"
         />
 
         <TouchableOpacity

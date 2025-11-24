@@ -5,7 +5,16 @@ import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ImageBackground, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
 
 // 🔁 Artık tek bir preview component'i kullanıyoruz
 import PreviewCV from "@/components/cvThemes/PreviewCV";
@@ -17,17 +26,57 @@ import * as Sharing from "expo-sharing";
 // --------- Sabitler ---------
 const A4_RATIO = 210 / 297; // sadece önizleme oranı
 
-
-const ENDPOINT =process.env.EXPO_PUBLIC_SERVER_ENDPOINT;
+const ENDPOINT = process.env.EXPO_PUBLIC_SERVER_ENDPOINT;
 const API_KEY = process.env.EXPO_PUBLIC_SERVER_API_KEY;
+
+// 🔹 Yaratıcı loading metinleri
+const LOADING_MESSAGES = [
+  "Bilgilerinizi sayfaya yerleştiriyoruz...",
+  "Başlıkları hizalıyoruz, satır sonlarını düzeltiyoruz...",
+  "Fotoğrafınızı en iyi köşeye yerleştiriyoruz...",
+  "Renk paletini parlatıyoruz, tasarımı cilalıyoruz...",
+  "Son kontroller yapılıyor, CV'niz hazır olmak üzere...",
+];
 
 export default function PreviewScreen() {
   const router = useRouter();
   const { cvData } = useCV();
   const [cv, setCv] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
   const [generating, setGenerating] = useState(false);
+  const [completed, setCompleted] = useState(false);
+
+  const compleatedOnce = completed
+
+  const [progress, setProgress] = useState(0);
+  const [messageIndex, setMessageIndex] = useState(0);
+
   const { theme } = useTheme();
+
+  // 🔁 PDF oluşturma sırasında mesaj + progress simülasyonu
+  useEffect(() => {
+    if (!generating) return;
+
+    setMessageIndex(0);
+    // Mesajları belirli aralıklarla değiştir
+    const msgInterval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, 1000);
+
+    // Progres barını yavaş yavaş doldur (max 95'e kadar)
+    const progInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 95) return prev;
+        return prev + 3;
+      });
+    }, 200);
+
+    return () => {
+      clearInterval(msgInterval);
+      clearInterval(progInterval);
+    };
+  }, [generating]);
 
   useEffect(() => {
     const fetchCV = async () => {
@@ -48,7 +97,6 @@ export default function PreviewScreen() {
         const snapshot = await getDoc(docRef);
 
         if (snapshot.exists()) {
-          // 🔹 Eskiden ne alıyorsan aynen onu alıyoruz
           setCv(snapshot.data());
         } else {
           Alert.alert("Hata", "CV verisi bulunamadı.");
@@ -66,16 +114,17 @@ export default function PreviewScreen() {
 
   const handleGeneratePDF = async () => {
     if (!cv || generating) return;
+
+    // Yeni işlem için progress'i sıfırla
+    setProgress(0);
     setGenerating(true);
 
     try {
       const theme = (cv.theme ?? "classic") as Theme;
 
-      // 🔹 PDF tarafı: SENİN ORİJİNAL MANTIK AYNEN DURUYOR
       const serverData = {
         personalInfo: {
           ...cv.personalInfo,
-          // modern.html.ts'te kullandığımız alanlara fallback:
           title: cv.personalInfo?.headline ?? cv.personalInfo?.title ?? "",
           city: cv.personalInfo?.city ?? cv.personalInfo?.location ?? "",
         },
@@ -88,16 +137,21 @@ export default function PreviewScreen() {
       };
 
       if (!ENDPOINT || !API_KEY) {
-         throw new Error("EXPO_PUBLIC_SERVER_ENDPOINT veya EXPO_PUBLIC_SERVER_API_KEY tanımlı değil");
+        throw new Error(
+          "EXPO_PUBLIC_SERVER_ENDPOINT veya EXPO_PUBLIC_SERVER_API_KEY tanımlı değil"
+        );
       }
 
       const fileUri = await renderPdf({
         endpoint: ENDPOINT,
         apiKey: API_KEY,
-        data: serverData,   // ✅ Backend’in alıştığı veri formatı
-        theme,              // "classic" | "modern" | "minimal"
+        data: serverData,
+        theme,
       });
 
+      // ✅ İş başarılıysa 100% göster, sonra overlay'i kapat
+      setProgress(100);
+      setCompleted(true);
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, {
           mimeType: "application/pdf",
@@ -116,11 +170,15 @@ export default function PreviewScreen() {
         Alert.alert("Hata", `Render başarısız: ${e?.message ?? e}`);
       }
     } finally {
-      setGenerating(false);
+      // 0.4 sn kadar %100 ekranı göster, sonra kapat
+      setTimeout(() => {
+        setGenerating(false);
+        setProgress(0);
+        setCompleted(false);
+      }, 900);
     }
   };
 
-  // 🔁 Artık tema switch yok, tek PreviewCV
   const renderCV = () => {
     if (!cv) return null;
     return <PreviewCV data={cv} />;
@@ -129,72 +187,138 @@ export default function PreviewScreen() {
   if (loading) {
     return (
       <ImageBackground
-      source={theme.bgImage}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-    >
-      <View 
-      className="flex-1 items-center justify-center ">
-        <ActivityIndicator size="large" color="#06b6d4" />
-        <Text 
-        style={{ color: theme.colors.text }}
-        className=" mt-3 text-2xl">Yükleniyor...</Text>
-      </View>
+        source={theme.bgImage}
+        style={{ flex: 1 }}
+        resizeMode="cover"
+      >
+        <View className="flex-1 items-center justify-center ">
+          <ActivityIndicator size="large" color="#06b6d4" />
+          <Text
+            style={{ color: theme.colors.text }}
+            className=" mt-3 text-2xl"
+          >
+            Yükleniyor...
+          </Text>
+        </View>
       </ImageBackground>
     );
   }
 
   return (
     <ImageBackground
-    source={theme.bgImage}
-    className="flex-1"
-    resizeMode="cover"
+      source={theme.bgImage}
+      className="flex-1"
+      resizeMode="cover"
     >
-    <View className="flex-1 bg-current px-5 py-6 mt-6">
-      <Text style={{ color: theme.colors.primary }} className="text-3xl font-bold text-center mb-4">
-        Bilgi Önizleme
-      </Text>
+      
+      <View className="flex-1 bg-current px-5 py-6 mt-6">
+        <Text
+          style={{ color: theme.colors.primary }}
+          className="text-3xl font-bold text-center mb-4"
+        >
+          Bilgi Önizleme
+        </Text>
 
-      {/* A4 oranlı tek sayfa önizleme alanı */}
-      <View
-        style={{
-          width: "100%",
-          aspectRatio: A4_RATIO,
-          backgroundColor: "#ffffff",
-          borderRadius: 12,
-          overflow: "hidden",
-        }}
-      >
-        {renderCV()}
+        {/* A4 oranlı tek sayfa önizleme alanı */}
+        <View
+          style={{
+            width: "100%",
+            aspectRatio: A4_RATIO,
+            backgroundColor: "#ffffff",
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
+        >
+          {renderCV()}
+        </View>
+
+        {/* Alt butonlar */}
+        <View className="flex-col items-center  justify-between mt-6">
+          <TouchableOpacity
+            disabled={generating}
+            className={` self-center px-12 py-4 rounded-full ${
+              generating ? "bg-cyan-400" : "bg-cyan-600"
+            }`}
+            onPress={handleGeneratePDF}
+          >
+            <Text className="text-white font-semibold">
+              {generating ? "Hazırlanıyor..." : "Pdf Oluştur & Paylaş"}
+            </Text>
+          </TouchableOpacity>
+            
+            
+              
+            <TouchableOpacity
+              
+              className={"self-center mt-10  px-12 py-4 rounded-full bg-cyan-600 "}
+              onPress={() => router.replace("/(tabs)")} 
+            >
+              <Text className="text-white font-semibold">
+                AnaSayfaya Dön
+              </Text>
+            </TouchableOpacity>
+
+
+
+        </View>
       </View>
 
-      {/* Alt butonlar */}
-      <View className="flex-row justify-around mt-6">
-        <TouchableOpacity
-          disabled={generating}
-          className={`px-5 py-3 rounded-xl ${
-            generating ? "bg-cyan-400" : "bg-cyan-600"
-          }`}
-          onPress={handleGeneratePDF}
-        >
-          <Text className="text-white font-semibold">
-            {generating ? "Hazırlanıyor..." : "PDF İndir"}
-          </Text>
-        </TouchableOpacity>
 
-        <TouchableOpacity
-          disabled={generating}
-          className={`px-5 py-3 rounded-xl ${
-            generating ? "bg-cyan-400" : "bg-cyan-600"
-          }`}
-          onPress={handleGeneratePDF}
-        >
-          <Text className="text-white font-semibold">
-            {generating ? "Hazırlanıyor..." : "Paylaş"}
-          </Text>
-        </TouchableOpacity>
+
+      {/* 🔥 PDF oluşturulurken tam ekran overlay */}
+      {generating && (
+  <View style={StyleSheet.absoluteFillObject} className="bg-black/60">
+    <View className="flex-1 items-center justify-center px-8 mb-20">
+      <View className="bg-white rounded-3xl px-6 py-8 w-full max-w-md items-center shadow-lg">
+
+        {/* ✔️ Eğer tamamlandıysa yeşil tik göster */}
+        {completed ? (
+          <>
+            <View
+              className="w-20 h-20 rounded-full bg-green-500 items-center justify-center"
+            >
+              <Text className="text-white text-4xl">✓</Text>
+            </View>
+
+            <Text className="mt-4 text-xl font-bold text-green-600">
+              Tamamlandı!
+            </Text>
+
+            <Text className="mt-1 text-sm text-gray-500">
+              PDF başarıyla oluşturuldu.
+            </Text>
+          </>
+        ) : (
+          <>
+            {/* 🔄 Normal yüklenme animasyonu */}
+            <ActivityIndicator size="large" color="#06b6d4" />
+
+            <Text className="mt-4 text-lg font-semibold text-gray-800">
+              CV&apos;n Hazırlanıyor...
+            </Text>
+
+            {/* Yükleme mesajı (tamamlanınca gizleniyor) */}
+            <Text className="mt-2 text-sm text-gray-500 text-center">
+              {LOADING_MESSAGES[messageIndex]}
+            </Text>
+
+            {/* Progress bar */}
+            <View className="w-full mt-4 h-2 rounded-full bg-gray-200 overflow-hidden">
+              <View
+                className="h-full bg-cyan-600"
+                style={{ width: `${progress}%` }}
+              />
+            </View>
+            <Text className="mt-2 text-xs bg-cyan-600 text-white text-center">
+              %{progress} tamamlandı
+            </Text>
+
+          </>
+        )}
       </View>
     </View>
+  </View>
+)}
     </ImageBackground>
   );
 }

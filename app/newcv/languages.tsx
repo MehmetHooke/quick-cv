@@ -1,7 +1,10 @@
 // app/newcv/languages.tsx
+import BackButton from "@/components/common/BackButton";
 import { Language, useCV } from "@/context/CVContext";
 import { useTheme } from "@/context/ThemeContext";
+import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
+import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
   Alert,
@@ -13,7 +16,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 export default function LanguagesScreen() {
   const router = useRouter();
   const { cvData, updateCV } = useCV();
@@ -52,11 +54,35 @@ export default function LanguagesScreen() {
     setLanguages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleNext = () => {
-    // Boş geçilebilir, sorun yok
-    updateCV("languages", languages);
-    router.push("/newcv/education");
+  const handleNext = async () => {
+    try {
+      // Context'i güncelle
+      updateCV("languages", languages);
+
+      const user = auth.currentUser;
+
+      // Kullanıcı ve cvData.id varsa Firestore'a da yaz
+      if (user && cvData.id) {
+        const docRef = doc(db, "users", user.uid, "cvs", cvData.id);
+
+        await updateDoc(docRef, {
+          languages: languages,          // boşsa [] olarak gider
+          updatedAt: serverTimestamp(),  // son güncelleme tarihi
+        });
+      }
+
+      router.push("/newcv/education");
+    } catch (error) {
+      console.error("Dil bilgileri kaydedilirken hata:", error);
+      Alert.alert(
+        "Hata",
+        "Dil bilgileri kaydedilirken bir hata oluştu. Lütfen tekrar deneyin."
+      );
+      // Hata olsa bile istersen burada navigate etmeyi engelleyebilirsin;
+      // şu an hata olursa ekranda kalıyor.
+    }
   };
+
 
   return (
     <ImageBackground
@@ -64,6 +90,7 @@ export default function LanguagesScreen() {
       style={{ flex: 1 }}
       resizeMode="cover"
     >
+      <BackButton />
       <SafeAreaView className="flex-1">
         <ScrollView
           className="flex-1 px-5 py-8 mt-5"
@@ -85,8 +112,8 @@ export default function LanguagesScreen() {
           </View>
 
           <Text
-            className="text-sm mb-4"
-            style={{ color: theme.colors.mutedText }}
+            className="text-base mb-4"
+            style={{ color: theme.colors.text }}
           >
             Bu adımı isteğe bağlı olarak doldurabilirsin. Hiç dil eklemezsen,
             CV'de dil bölümü görünmez.
@@ -128,8 +155,8 @@ export default function LanguagesScreen() {
           {/* Yeni dil ekleme alanı */}
           <View className="mt-4 mb-8">
             <Text
-              className="text-sm mb-2"
-              style={{ color: theme.colors.mutedText }}
+              className="text-base mb-2"
+              style={{ color: theme.colors.text }}
             >
               Yeni dil eklemek istiyorum
             </Text>
@@ -165,7 +192,7 @@ export default function LanguagesScreen() {
             <TouchableOpacity
               onPress={handleAddLanguage}
               className="self-center px-12 py-3 rounded-xl mt-1"
-              style={{ backgroundColor: theme.colors.primary }}
+              style={{ backgroundColor: theme.colors.buttonBg }}
             >
               <Text className="text-white text-sm font-semibold">Dil Ekle</Text>
             </TouchableOpacity>
@@ -175,7 +202,7 @@ export default function LanguagesScreen() {
           <TouchableOpacity
             onPress={handleNext}
             className="py-4 rounded-2xl mb-10"
-            style={{ backgroundColor: theme.colors.primary }}
+            style={{ backgroundColor: theme.colors.buttonBg }}
           >
             <Text className="text-center text-white font-semibold text-lg">
               Devam Et

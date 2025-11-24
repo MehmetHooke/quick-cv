@@ -1,6 +1,7 @@
 import { useTheme } from "@/context/ThemeContext";
 import { auth, db, storage } from "@/firebaseConfig";
 import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -107,6 +108,7 @@ export default function ProfileScreen() {
     try {
       await signOut(auth);
       Alert.alert("Çıkış yapıldı", "Tekrar görüşmek üzere!");
+      router.replace("../auth/login");
     } catch (error: any) {
       Alert.alert("Hata", error.message);
     }
@@ -135,7 +137,7 @@ export default function ProfileScreen() {
             borderColor: isActive ? theme.colors.primary : theme.colors.inputBorder,
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: isActive ? theme.colors.primary : "transparent",
+            backgroundColor: isActive ? theme.colors.buttonBg : "transparent",
           }}
         >
           {isActive && <Text className="text-white text-xs">✓</Text>}
@@ -355,7 +357,7 @@ export default function ProfileScreen() {
                 </Text>
                 <Text
                   className="text-xl"
-                  style={{ color: theme.colors.primary }}
+                  style={{ color: theme.colors.historythemeLabel }}
                 >
                   {isPasswordOpen ? "▲" : "▼"}
                 </Text>

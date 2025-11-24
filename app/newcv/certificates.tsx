@@ -1,8 +1,10 @@
+import BackButton from "@/components/common/BackButton";
 import { ContinueButton } from "@/components/form/ContinueButton";
 import { useCV } from "@/context/CVContext";
 import { useTheme } from "@/context/ThemeContext";
 import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
+
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
@@ -112,6 +114,7 @@ export default function CertificatesScreen() {
     source={theme.bgImage}
     resizeMode="cover"
     >
+      <BackButton />
     <ScrollView className="flex-1 px-5 py-8 mt-5">
       <View className="items-center mb-6">
         <Text className="text-2xl font-bold  mb-1" style={{ color: theme.colors.primary }}>
@@ -120,14 +123,14 @@ export default function CertificatesScreen() {
         <View className="h-1 w-1/3" style={{ backgroundColor: theme.colors.primary, borderRadius: 9999 }}  />
       </View>
 
-      <Text className="text-sm  mb-4" style={{ color: theme.colors.text }}>
+      <Text className="text-base mb-4" style={{ color: theme.colors.text }}>
         Katıldığın eğitim ve aldığın sertifikaları ekleyebilirsin. Birden fazla
         sertifika eklemek serbest.
       </Text>
 
       {/* Yeni sertifika ekleme alanı */}
       <View className="mb-6">
-        <Text className="text-sm  mb-2"
+        <Text className="text-base mb-2"
         style={{ color: theme.colors.text }}>
           Yeni sertifika eklemek istiyorum
         </Text>
@@ -138,7 +141,7 @@ export default function CertificatesScreen() {
           value={newCert.name || ""}
           onChangeText={(t) => setNewCert({ ...newCert, name: t })}
           style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="border  rounded-xl p-3 mb-3 text-sm"
+          className="  rounded-xl p-3 mb-3 text-sm"
         />
 
         <TextInput
@@ -147,7 +150,7 @@ export default function CertificatesScreen() {
           value={newCert.issuer || ""}
           onChangeText={(t) => setNewCert({ ...newCert, issuer: t })}
           style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="border  rounded-xl p-3 mb-3 text-sm"
+          className="  rounded-xl p-3 mb-3 text-sm"
         />
 
         <TextInput
@@ -156,7 +159,7 @@ export default function CertificatesScreen() {
           value={newCert.date || ""}
           onChangeText={(t) => setNewCert({ ...newCert, date: t })}
           style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="border  rounded-xl p-3 mb-3 text-sm"
+          className="  rounded-xl p-3 mb-3 text-sm"
         />
 
         <TextInput
@@ -167,7 +170,7 @@ export default function CertificatesScreen() {
           value={newCert.description || ""}
           onChangeText={(t) => setNewCert({ ...newCert, description: t })}
           style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="border  rounded-xl p-3 mb-4 text-sm"
+          className="  rounded-xl p-3 mb-4 text-sm"
         />
 
         <TouchableOpacity

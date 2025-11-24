@@ -1,10 +1,10 @@
 // context/ThemeContext.tsx
 import React, {
-    createContext,
-    ReactNode,
-    useContext,
-    useMemo,
-    useState,
+  createContext,
+  ReactNode,
+  useContext,
+  useMemo,
+  useState,
 } from "react";
 import { ImageSourcePropType } from "react-native";
 
@@ -18,8 +18,11 @@ type ThemeConfig = {
     card: string;
     text: string;
     mutedText: string;
+    navigationbar: string;
     primary: string;
+    historythemeLabel: string;
     inputBg: string;
+    buttonBg: string;
     inputBorder: string;
     logoutButtonBg: string;
     borderStrong: string;
@@ -35,7 +38,10 @@ const lightTheme: ThemeConfig = {
     card: "#FFFFFF",
     text: "#1E1E1E",
     mutedText: "#454545",
-    primary: "#0C94B9",
+    historythemeLabel: "#000",
+    navigationbar: "#0C94B9",
+    primary: "#FFFFFF",
+    buttonBg: "#0C94B9",
     inputBg: "#F6F8FA",
     inputBorder: "#E3E6EA",
     logoutButtonBg: "#0C94B9",
@@ -51,8 +57,11 @@ const darkTheme: ThemeConfig = {
     background: "#050608",
     card: "#111827",
     text: "#F9FAFB",
+    navigationbar: "#020617",
     mutedText: "#9CA3AF",
+    historythemeLabel: "#FFFFFF",
     primary: "#0C94B9", // istersen sonra #06B6D4 gibi daha canlı yaparız
+    buttonBg: "#0C94B9",
     inputBg: "#020617",
     inputBorder: "#1F2937",
     logoutButtonBg: "#0C94B9",

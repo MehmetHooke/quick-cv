@@ -1,4 +1,6 @@
+import BackButton from "@/components/common/BackButton";
 import { ContinueButton } from "@/components/form/ContinueButton";
+
 import { useCV } from "@/context/CVContext";
 import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
@@ -126,6 +128,7 @@ export default function EducationScreen() {
     style={{ flex: 1 }}
     resizeMode="cover"
     >
+      <BackButton />
     <SafeAreaView className="flex-1">
           <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -146,14 +149,14 @@ export default function EducationScreen() {
       </View>
 
       {/* Açıklama */}
-      <Text className="text-sm" style={{ color: theme.colors.mutedText }}>
+      <Text className="text-base" style={{ color: theme.colors.text }}>
         Mezun olduğun veya devam ettiğin okulları ekleyebilirsin. Birden fazla
         eğitim bilgisi eklemek serbest.
       </Text>
 
       {/* Yeni eğitim ekleme alanı */}
       <View className="mb-6">
-        <Text className="text-sm" style={{ color: theme.colors.mutedText, marginBottom: 8 }}>
+        <Text className="text-base mt-2" style={{ color: theme.colors.text, marginBottom: 8 }}>
           Yeni eğitim eklemek istiyorum
         </Text>
 
@@ -211,7 +214,7 @@ export default function EducationScreen() {
 
         <TouchableOpacity
           onPress={addEducation}
-          style={{ backgroundColor: theme.colors.primary }}
+          style={{ backgroundColor: theme.colors.buttonBg }}
           className="self-center  px-12 py-3 rounded-xl"
         >
           <Text className="text-white text-sm font-semibold">
@@ -238,7 +241,7 @@ export default function EducationScreen() {
           </View>
           <TouchableOpacity
             onPress={() => removeEducation(index)}
-            className="px-3 py-1 rounded-full px-3"
+            className="px-3 py-1 rounded-full"
             style={{ backgroundColor: "#FEE2E2" }}
           >
             <Text className="text-xs font-semibold text-red-800">Sil</Text>

@@ -62,6 +62,38 @@ const templates = [
       "Sol tarafta pastel mavi panel, sağda dalgalı başlık alanı ile modern ve sade satır aralığı yüksek bir CV tasarımı. Özellikle teknik ve kreatif adaylar için şık bir görünüm sunar",
     image: require("@/assets/templates/tealwave.png"),
   },
+
+    {
+    id: "slateLine",
+    name: "Slate Line",
+    description:
+      "Sol tarafta koyu gri bir panel ve sağda ince çizgilerle ayrılmış bölümler sunan modern bir CV tasarımıdır. Özellikle profesyonel ve kurumsal pozisyonlar için idealdir.",
+    image: require("@/assets/templates/slateline.png"),
+  },
+
+      {
+    id: "amberRibbon",
+    name: "Amber Ribbon",
+    description:
+      "Amber Ribbon, Sıcak vurgulu, sade çizgisel CV şablonu",
+    image: require("@/assets/templates/amberribbon.png"),
+  },
+        {
+    id: "graphiteGrid",
+    name: "Graphite Grid",
+    description:
+      "Gri tonlarda,çizgilerle ayrılmış bölümlerden oluşan modern ve kurumsal CV şablonu.",
+    image: require("@/assets/templates/graphiteGrid.png"),
+  },
+
+          {
+    id: "auroraSplit",
+    name: "Aurora Split",
+    description:
+      "Sol tarafta dikey aurora renk geçişi, sağ tarafta beyaz ve temiz içerik alanı ile modern CV",
+    image: require("@/assets/templates/aurorasplit.png"),
+  }, 
+
 ];
 
 export default function HomeScreen() {
@@ -112,18 +144,47 @@ export default function HomeScreen() {
     savedTranslateY.value = 0;
   };
 
+  const EMPTY_PERSONAL_INFO = {
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    photo: null,
+    location: "",
+    headline: "",
+    extraContacts: [],
+  };
+  // 🧹 Yeni bir CV için tüm alanları temizle + tema seç
+  const startNewCVWithTheme = (themeId: string) => {
+    // Eski kaydın id'sini temizle ki üzerine yazmayalım
+    updateCV("id", "");
+    // Temel alanlar
+    updateCV("personalInfo",EMPTY_PERSONAL_INFO);
+    updateCV("education", []);
+    updateCV("experiences", []);
+    updateCV("certificates", []);
+    updateCV("skills", []);
+    updateCV("languages", []);
+    updateCV("about", "");
+
+    // Tema en sonda seçilsin
+    updateCV("theme", themeId as any);
+  };
+
+
+
   // 🔹 Karttaki "Temayı Seç" (modal açmadan direkt)
   const handleUseThemeDirect = (item: (typeof templates)[0]) => {
-    updateCV("theme", item.id as any);
+    startNewCVWithTheme(item.id);
     router.push("/newcv/personal-info");
   };
 
   // 🔹 Modal içindeki "Bu Temayı Kullan"
   const handleUseThemeFromModal = () => {
     if (!selected) return;
-    updateCV("theme", selected.id as any);
+    startNewCVWithTheme(selected.id);
     pendingNavRef.current = () => router.push("/newcv/personal-info");
-    setSelected(null); // modal kapanır → onDismiss tetiklenir
+    setSelected(null);
   };
 
   // ✋ Pan jesti
@@ -197,10 +258,10 @@ export default function HomeScreen() {
         {/* Başlık */}
         <Text
           className="text-2xl font-extrabold text-white text-center mt-16 mb-7"
-          
         >
           CV Tasarımları
         </Text>
+
 
         {/* CV Kartları */}
         <FlatList
@@ -218,7 +279,7 @@ export default function HomeScreen() {
             paddingHorizontal: 10,
           }}
         />
-
+        
         {/* Önizleme Modal */}
         <Modal
           visible={!!selected}
@@ -234,12 +295,15 @@ export default function HomeScreen() {
             }
           }}
         >
+
+          
           <View className="flex-1 bg-black/85 justify-center items-center px-5">
+          
             <View className="w-full items-end mb-4">
               <Pressable
                 onPress={() => setSelected(null)}
                 className="flex-row items-center rounded-lg px-5 py-2"
-                style={{ backgroundColor: theme.colors.primary }}
+                style={{ backgroundColor: theme.colors.buttonBg }}
               >
                 <Ionicons name="close" size={22} color="white" />
                 <Text className="text-white text-lg font-semibold ml-2">
@@ -267,7 +331,7 @@ export default function HomeScreen() {
             <Pressable
               onPress={handleUseThemeFromModal}
               className="mt-6 rounded-lg px-8 py-4"
-              style={{ backgroundColor: theme.colors.primary }}
+              style={{ backgroundColor: theme.colors.buttonBg }}
               disabled={!selected}
             >
               <Text className="text-white text-lg font-semibold">

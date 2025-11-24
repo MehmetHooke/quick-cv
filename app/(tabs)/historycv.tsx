@@ -3,6 +3,8 @@ import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import {
   collection,
+  deleteDoc,
+  doc,
   getDocs,
   orderBy,
   query,
@@ -10,6 +12,7 @@ import {
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   ImageBackground,
   RefreshControl,
@@ -127,6 +130,41 @@ export default function HistoryCv() {
       </ImageBackground>
     );
   }
+        // Silme fonksiyonu
+
+const handleDelete = (firestoreId: string) => {
+  Alert.alert(
+    "Emin misiniz?",
+    "Bu CV kalıcı olarak silinecek.",
+    [
+      { text: "İptal", style: "cancel" },
+      {
+        text: "Sil",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            // Firestore'dan sil
+            await deleteDoc(doc(db, "users", user.uid, "cvs", firestoreId));
+
+            // UI'dan da sil
+            setItems((prev) =>
+              prev.filter((item) => item.firestoreId !== firestoreId)
+            );
+          } catch (error) {
+            console.log("Silme hatası:", error);
+            Alert.alert("Hata", "Silinirken bir problem oluştu.");
+          }
+        },
+      },
+    ]
+  );
+};
+
+
+
 
   // 🔹 İlk yükleme
   if (loading && !refreshing) {
@@ -206,9 +244,12 @@ export default function HistoryCv() {
                 classic: "Klasik",
                 modern: "Modern",
                 minimal: "Minimal",
-                tealwave: "Teal Wave",
                 pinkModern: "Pembe Modern",
+                tealWave: "Teal Wave",
                 navyBlueModern: "Açık Mavi Modern",
+                amberRibbon: "Amber Ribbon",
+                graphiteGrid: "Graphite Grid",
+                auroraSplit: "Aurora Split",
               };
               const themeLabel =
                 themeLabelMap[item.theme] || item.theme || "Bilinmeyen Tema";
@@ -234,7 +275,7 @@ export default function HistoryCv() {
                       className="text-xs px-2 py-1 rounded-full font-semibold"
                       style={{
                         backgroundColor: theme.colors.inputBg,
-                        color: theme.colors.primary,
+                        color: theme.colors.historythemeLabel,
                       }}
                     >
                       {themeLabel}
@@ -275,6 +316,26 @@ export default function HistoryCv() {
                     >
                       Düzenle / Görüntüle
                     </Text>
+
+                      {/* Sil butonu */}
+                    <TouchableOpacity
+                      onPress={(e: any) => {
+                        // Kartın onPress'inin tetiklenmesini engelle
+                        e?.stopPropagation?.();
+                        handleDelete(item.firestoreId);
+                      }}
+                      className="ml-3 px-2 py-1 rounded-full"
+                      style={{
+                        backgroundColor: "#fee2e2",
+                      }}
+                    >
+                      <Text
+                        className="text-xs font-semibold"
+                        style={{ color: "#b91c1c" }}
+                      >
+                        Sil
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
               );

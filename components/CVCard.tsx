@@ -79,7 +79,7 @@ export default function CVCard({
       {/* CV Adı */}
       <Text
         className="font-extrabold text-md mt-3 text-center"
-        style={{ color: theme.colors.primary }}
+        style={{ color: theme.colors.text }}
         numberOfLines={2}
       >
         {item.name}
@@ -107,7 +107,7 @@ export default function CVCard({
           flexDirection: "row",
           alignItems: "center",
           backgroundColor: isUsable
-            ? theme.colors.primary
+            ? theme.colors.buttonBg
             : theme.colors.inputBorder,
           opacity: isUsable ? 1 : 0.7,
         }}

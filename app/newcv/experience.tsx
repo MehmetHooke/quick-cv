@@ -1,4 +1,6 @@
+import BackButton from "@/components/common/BackButton";
 import { useCV } from "@/context/CVContext";
+
 import { useTheme } from "@/context/ThemeContext";
 import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
@@ -117,6 +119,7 @@ export default function ExperienceScreen() {
     style={{ flex: 1 }}
     resizeMode="cover"
     >
+      <BackButton />
     <ScrollView className="flex-1 px-5 py-8 mt-5">
       <View className="items-center mb-6">
         <Text
@@ -124,12 +127,12 @@ export default function ExperienceScreen() {
         className="text-2xl font-bold  mb-1">
           Deneyim Bilgileri
         </Text>
-        <View className="h-1 w-1/3 bg-cyan-500 rounded-full" />
+        <View className="h-1 w-1/3 bg-white rounded-full" />
       </View>
 
       <Text
       style={{ color: theme.colors.text }}
-      className="text-sm  mb-4">
+      className="text-base mt-5 mb-4">
         İş ve staj deneyimlerini buraya ekleyebilirsin. Birden fazla deneyim
         eklemek serbest.
       </Text>
@@ -138,7 +141,7 @@ export default function ExperienceScreen() {
       <View className="mb-6">
         <Text 
         style={{ color: theme.colors.text }}
-        className="text-sm mb-2">
+        className="text-base mb-2">
           Yeni deneyim eklemek istiyorum
         </Text>
 
@@ -148,7 +151,7 @@ export default function ExperienceScreen() {
           value={newExp.company || ""}
           onChangeText={(t) => setNewExp({ ...newExp, company: t })}
           style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="border rounded-xl p-3 mb-3 text-sm"
+          className=" rounded-xl p-3 mb-3 text-sm"
         />
 
         <TextInput
@@ -157,7 +160,7 @@ export default function ExperienceScreen() {
           value={newExp.position || ""}
           onChangeText={(t) => setNewExp({ ...newExp, position: t })}
           style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="border rounded-xl p-3 mb-3 text-sm"
+          className="  rounded-xl p-3 mb-3 text-sm"
         />
 
         <TextInput
@@ -166,7 +169,7 @@ export default function ExperienceScreen() {
           value={newExp.startDate || ""}
           onChangeText={(t) => setNewExp({ ...newExp, startDate: t })}
           style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="border rounded-xl p-3 mb-3 text-sm"
+          className=" rounded-xl p-3 mb-3 text-sm"
         />
 
         <TextInput
@@ -175,7 +178,7 @@ export default function ExperienceScreen() {
           value={newExp.endDate || ""}
           onChangeText={(t) => setNewExp({ ...newExp, endDate: t })}
           style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="border rounded-xl p-3 mb-3 text-sm"
+          className=" rounded-xl p-3 mb-3 text-sm"
         />
 
         <TextInput
@@ -186,7 +189,7 @@ export default function ExperienceScreen() {
           value={newExp.description || ""}
           onChangeText={(t) => setNewExp({ ...newExp, description: t })}
           style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="border  rounded-xl p-3 mb-4 text-sm"
+          className="  rounded-xl p-3 mb-4 text-sm"
         />
 
         <TouchableOpacity
