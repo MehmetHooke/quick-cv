@@ -1,5 +1,6 @@
 // app/newcv/preview.tsx
 import { useCV } from "@/context/CVContext";
+import { usePremium } from "@/context/PremiumContext";
 import { useTheme } from "@/context/ThemeContext";
 import { auth, db } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
@@ -15,21 +16,15 @@ import {
   View,
 } from "react-native";
 
-
-// 🔁 Artık tek bir preview component'i kullanıyoruz
-import PreviewCV from "@/components/cvThemes/PreviewCV";
-
-// Paylaşım ve render istemcisi
 import { renderPdf, type Theme } from "@/app/lib/renderClient";
+import PreviewCV from "@/components/cvThemes/PreviewCV";
 import * as Sharing from "expo-sharing";
 
-// --------- Sabitler ---------
-const A4_RATIO = 210 / 297; // sadece önizleme oranı
+const A4_RATIO = 210 / 297;
 
 const ENDPOINT = process.env.EXPO_PUBLIC_SERVER_ENDPOINT;
 const API_KEY = process.env.EXPO_PUBLIC_SERVER_API_KEY;
 
-// 🔹 Yaratıcı loading metinleri
 const LOADING_MESSAGES = [
   "Bilgilerinizi sayfaya yerleştiriyoruz...",
   "Başlıkları hizalıyoruz, satır sonlarını düzeltiyoruz...",
@@ -37,6 +32,16 @@ const LOADING_MESSAGES = [
   "Renk paletini parlatıyoruz, tasarımı cilalıyoruz...",
   "Son kontroller yapılıyor, CV'niz hazır olmak üzere...",
 ];
+
+// 🔹 Bir sonraki ayın 1'ini hesapla (örn: 01.12.2025)
+const getNextResetDateString = () => {
+  const now = new Date();
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const d = String(nextMonth.getDate()).padStart(2, "0");
+  const m = String(nextMonth.getMonth() + 1).padStart(2, "0");
+  const y = nextMonth.getFullYear();
+  return `${d}.${m}.${y}`;
+};
 
 export default function PreviewScreen() {
   const router = useRouter();
@@ -46,25 +51,31 @@ export default function PreviewScreen() {
 
   const [generating, setGenerating] = useState(false);
   const [completed, setCompleted] = useState(false);
-
-  const compleatedOnce = completed
-
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
 
   const { theme } = useTheme();
+
+  const {
+    isPremium,
+    pdfLimit,
+    pdfUsageCount,
+    registerPdfCreated,
+  } = usePremium();
+
+  const [premiumLimitModalVisible, setPremiumLimitModalVisible] =
+    useState(false);
+  const nextResetDate = getNextResetDateString();
 
   // 🔁 PDF oluşturma sırasında mesaj + progress simülasyonu
   useEffect(() => {
     if (!generating) return;
 
     setMessageIndex(0);
-    // Mesajları belirli aralıklarla değiştir
     const msgInterval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
     }, 1000);
 
-    // Progres barını yavaş yavaş doldur (max 95'e kadar)
     const progInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 95) return prev;
@@ -88,7 +99,10 @@ export default function PreviewScreen() {
           return;
         }
         if (!cvData?.id) {
-          Alert.alert("Hata", "CV kimliği bulunamadı. Lütfen yeniden deneyin.");
+          Alert.alert(
+            "Hata",
+            "CV kimliği bulunamadı. Lütfen yeniden deneyin."
+          );
           router.push("/(tabs)");
           return;
         }
@@ -115,7 +129,38 @@ export default function PreviewScreen() {
   const handleGeneratePDF = async () => {
     if (!cv || generating) return;
 
-    // Yeni işlem için progress'i sıfırla
+    // 🔍 Debug için istersen şunu aç:
+    // console.log("PDF limit check:", { isPremium, pdfLimit, pdfUsageCount });
+
+    // 🔹 1) Önce PDF limit kontrolü
+    if (pdfUsageCount >= pdfLimit) {
+      if (isPremium) {
+        // Premium kullanıcı → özel limit doldu ekranı
+        setPremiumLimitModalVisible(true);
+        console.log("PREVIEW LIMIT CHECK:", {
+  isPremium,
+  pdfLimit,
+  pdfUsageCount,
+});
+
+      } else {
+        // Ücretsiz kullanıcı → Tema Paketine yönlendiren uyarı
+        Alert.alert(
+          "PDF Limitine Ulaştın",
+          "Bu ayki ücretsiz PDF hakkını doldurdun. Tema Paketini satın alarak hem tüm premium temaların hem de genişletilmiş PDF limitinin kilidini açabilirsin.",
+          [
+            { text: "Vazgeç", style: "cancel" },
+            {
+              text: "Tema Paketini Gör",
+              onPress: () => router.push("/paywall"),
+            },
+          ]
+        );
+      }
+      return;
+    }
+
+    // 🔹 Yeni işlem için progress'i sıfırla
     setProgress(0);
     setGenerating(true);
 
@@ -149,9 +194,12 @@ export default function PreviewScreen() {
         theme,
       });
 
-      // ✅ İş başarılıysa 100% göster, sonra overlay'i kapat
+      // ✅ İş başarılıysa usage counter'ı artır
+      await registerPdfCreated();
+
       setProgress(100);
       setCompleted(true);
+
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, {
           mimeType: "application/pdf",
@@ -170,7 +218,6 @@ export default function PreviewScreen() {
         Alert.alert("Hata", `Render başarısız: ${e?.message ?? e}`);
       }
     } finally {
-      // 0.4 sn kadar %100 ekranı göster, sonra kapat
       setTimeout(() => {
         setGenerating(false);
         setProgress(0);
@@ -210,7 +257,6 @@ export default function PreviewScreen() {
       className="flex-1"
       resizeMode="cover"
     >
-      
       <View className="flex-1 bg-current px-5 py-6 mt-6">
         <Text
           style={{ color: theme.colors.primary }}
@@ -245,80 +291,98 @@ export default function PreviewScreen() {
               {generating ? "Hazırlanıyor..." : "Pdf Oluştur & Paylaş"}
             </Text>
           </TouchableOpacity>
-            
-            
-              
-            <TouchableOpacity
-              
-              className={"self-center mt-10  px-12 py-4 rounded-full bg-cyan-600 "}
-              onPress={() => router.replace("/(tabs)")} 
-            >
-              <Text className="text-white font-semibold">
-                AnaSayfaya Dön
-              </Text>
-            </TouchableOpacity>
 
-
-
+          <TouchableOpacity
+            className={
+              "self-center mt-10  px-12 py-4 rounded-full bg-cyan-600 "
+            }
+            onPress={() => router.replace("/(tabs)")}
+          >
+            <Text className="text-white font-semibold">AnaSayfaya Dön</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
-
-
       {/* 🔥 PDF oluşturulurken tam ekran overlay */}
       {generating && (
-  <View style={StyleSheet.absoluteFillObject} className="bg-black/60">
-    <View className="flex-1 items-center justify-center px-8 mb-20">
-      <View className="bg-white rounded-3xl px-6 py-8 w-full max-w-md items-center shadow-lg">
+        <View style={StyleSheet.absoluteFillObject} className="bg-black/60">
+          <View className="flex-1 items-center justify-center px-8 mb-20">
+            <View className="bg-white rounded-3xl px-6 py-8 w-full max-w-md items-center shadow-lg">
+              {completed ? (
+                <>
+                  <View className="w-20 h-20 rounded-full bg-green-500 items-center justify-center">
+                    <Text className="text-white text-4xl">✓</Text>
+                  </View>
 
-        {/* ✔️ Eğer tamamlandıysa yeşil tik göster */}
-        {completed ? (
-          <>
-            <View
-              className="w-20 h-20 rounded-full bg-green-500 items-center justify-center"
-            >
-              <Text className="text-white text-4xl">✓</Text>
+                  <Text className="mt-4 text-xl font-bold text-green-600">
+                    Tamamlandı!
+                  </Text>
+
+                  <Text className="mt-1 text-sm text-gray-500">
+                    PDF başarıyla oluşturuldu.
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <ActivityIndicator size="large" color="#06b6d4" />
+
+                  <Text className="mt-4 text-lg font-semibold text-gray-800">
+                    CV&apos;n Hazırlanıyor...
+                  </Text>
+
+                  <Text className="mt-2 text-sm text-gray-500 text-center">
+                    {LOADING_MESSAGES[messageIndex]}
+                  </Text>
+
+                  <View className="w-full mt-4 h-2 rounded-full bg-gray-200 overflow-hidden">
+                    <View
+                      className="h-full bg-cyan-600"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </View>
+                  <Text className="mt-2 text-xs bg-cyan-600 text-white text-center">
+                    %{progress} tamamlandı
+                  </Text>
+                </>
+              )}
             </View>
+          </View>
+        </View>
+      )}
 
-            <Text className="mt-4 text-xl font-bold text-green-600">
-              Tamamlandı!
-            </Text>
+      {/* 🔒 Premium aylık limit dolduğunda uyarı modali */}
+      {premiumLimitModalVisible && (
+        <View style={StyleSheet.absoluteFillObject} className="bg-black/70">
+          <View className="flex-1 items-center justify-center px-8">
+            <View className="bg-white rounded-3xl px-6 py-8 w-full max-w-md items-center shadow-lg">
+              <Text className="text-xl font-bold text-gray-900 text-center">
+                Aylık PDF Limitine Ulaştın
+              </Text>
+              <Text className="mt-3 text-sm text-gray-600 text-center">
+                Bu ay için tanımlanan premium PDF hakkını doldurdun.
+              </Text>
+              <Text className="mt-2 text-sm text-gray-600 text-center">
+                Limit her ayın başında otomatik olarak yenilenir.
+              </Text>
+              <Text className="mt-2 text-sm font-semibold text-cyan-700 text-center">
+                Bir sonraki yenileme tarihi: {nextResetDate}
+              </Text>
 
-            <Text className="mt-1 text-sm text-gray-500">
-              PDF başarıyla oluşturuldu.
-            </Text>
-          </>
-        ) : (
-          <>
-            {/* 🔄 Normal yüklenme animasyonu */}
-            <ActivityIndicator size="large" color="#06b6d4" />
-
-            <Text className="mt-4 text-lg font-semibold text-gray-800">
-              CV&apos;n Hazırlanıyor...
-            </Text>
-
-            {/* Yükleme mesajı (tamamlanınca gizleniyor) */}
-            <Text className="mt-2 text-sm text-gray-500 text-center">
-              {LOADING_MESSAGES[messageIndex]}
-            </Text>
-
-            {/* Progress bar */}
-            <View className="w-full mt-4 h-2 rounded-full bg-gray-200 overflow-hidden">
-              <View
-                className="h-full bg-cyan-600"
-                style={{ width: `${progress}%` }}
-              />
+              <TouchableOpacity
+                onPress={() => {
+                  setPremiumLimitModalVisible(false);
+                  router.replace("/(tabs)");
+                }}
+                className="mt-6 px-8 py-3 rounded-full bg-cyan-600"
+              >
+                <Text className="text-white font-semibold">
+                  Anasayfaya Dön
+                </Text>
+              </TouchableOpacity>
             </View>
-            <Text className="mt-2 text-xs bg-cyan-600 text-white text-center">
-              %{progress} tamamlandı
-            </Text>
-
-          </>
-        )}
-      </View>
-    </View>
-  </View>
-)}
+          </View>
+        </View>
+      )}
     </ImageBackground>
   );
 }

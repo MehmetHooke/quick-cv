@@ -1,6 +1,8 @@
 // app/(tabs)/index.tsx
+import { isPremiumTemplate } from "@/app/lib/themes";
 import CVCard from "@/components/CVCard";
 import { useCV } from "@/context/CVContext";
+import { usePremium } from "@/context/PremiumContext";
 import { useTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -101,6 +103,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { updateCV } = useCV();
   const { theme } = useTheme();
+  const { isPremium } = usePremium(); //🔹 Premium durumu
 
   // 🧭 Modal kapandıktan sonra çalıştırılacak navigasyon fonksiyonu
   const pendingNavRef = useRef<null | (() => void)>(null);
@@ -175,16 +178,34 @@ export default function HomeScreen() {
 
   // 🔹 Karttaki "Temayı Seç" (modal açmadan direkt)
   const handleUseThemeDirect = (item: (typeof templates)[0]) => {
-    startNewCVWithTheme(item.id);
-    router.push("/newcv/personal-info");
+
+  // Eğer tema premium ve kullanıcı premium değilse → paywall
+  if (!isPremium && isPremiumTemplate(item.id)) {
+    router.push("/paywall");
+    return;
+  }
+
+  // Normal akış
+  startNewCVWithTheme(item.id);
+  router.push("/newcv/personal-info");
   };
 
   // 🔹 Modal içindeki "Bu Temayı Kullan"
   const handleUseThemeFromModal = () => {
-    if (!selected) return;
-    startNewCVWithTheme(selected.id);
-    pendingNavRef.current = () => router.push("/newcv/personal-info");
+  if (!selected) return;
+
+  // Premium kontrolü
+  if (!isPremium && isPremiumTemplate(selected.id)) {
+    // Önce modalı kapat, sonra paywall'a git
     setSelected(null);
+    router.push("/paywall");
+    return;
+  }
+
+  // Normal akış
+  startNewCVWithTheme(selected.id);
+  pendingNavRef.current = () => router.push("/newcv/personal-info");
+  setSelected(null);
   };
 
   // ✋ Pan jesti

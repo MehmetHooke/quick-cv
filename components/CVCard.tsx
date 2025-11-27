@@ -1,4 +1,7 @@
+import { isPremiumTemplate } from "@/app/lib/themes";
+import { usePremium } from "@/context/PremiumContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useRouter } from "expo-router";
 import React from "react";
 import { Dimensions, Image, Pressable, Text, View } from "react-native";
 
@@ -19,6 +22,8 @@ export default function CVCard({
 }: Props) {
   // 🔹 Global tema
   const { theme } = useTheme();
+  const { isPremium } = usePremium();
+  const router = useRouter();
 
   // 🔹 Kart genişliği hesaplama
   const horizontalPadding = 20; // FlatList columnWrapperStyle ile uyumlu
@@ -37,6 +42,24 @@ export default function CVCard({
 
   const isUsable = !!onUse;
 
+  // 🔹 Bu tema premium mu?
+  const premiumTemplate = isPremiumTemplate(item.id);
+  // Kullanıcı premium DEĞİLSE ve tema premium ise badge gözüksün
+  const showPremiumBadge = premiumTemplate && !isPremium;
+
+  const handleUsePress = () => {
+    if (!isUsable) return;
+
+    // Kullanıcı premium değil ve premium tema seçti → Paywall'a yönlendir
+    if (premiumTemplate && !isPremium) {
+      router.push("./paywall");//burasında replace kullanılabilir düzgün göndermiyor app altında olunca
+      return;
+    }
+
+    // Normal davranış
+    onUse?.(item);
+  };
+
   return (
     <View
       className="rounded-2xl mb-6 flex-col justify-between"
@@ -54,8 +77,35 @@ export default function CVCard({
         shadowOffset: { width: 0, height: 3 },
         elevation: 3,
         padding: 12,
+        position: "relative", // 🔹 Badge için gerekli
       }}
     >
+      {/* 🔸 PREMIUM Badge (sağ üst köşe) */}
+      {showPremiumBadge && (
+        <View
+          style={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 999,
+            backgroundColor: "#f59e0b",
+            zIndex: 10,
+          }}
+        >
+          <Text
+            style={{
+              color: "#111827",
+              fontWeight: "700",
+              fontSize: 10,
+            }}
+          >
+            PREMIUM
+          </Text>
+        </View>
+      )}
+
       {/* CV Görseli */}
       <Pressable onPress={() => onPreview?.(item)}>
         <View
@@ -96,7 +146,7 @@ export default function CVCard({
 
       {/* Buton */}
       <Pressable
-        onPress={() => onUse?.(item)}
+        onPress={handleUsePress}
         disabled={!isUsable}
         style={{
           marginTop: 10,

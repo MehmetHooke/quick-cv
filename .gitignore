@@ -11,10 +11,7 @@ expo-env.d.ts
 .env
 
 # Firebase gizli dosyalar
-firebaseConfig.js
-firebaseConfig.ts
-firebase.js
-firebaseConfig.json
+
 
 # Native
 .kotlin/
