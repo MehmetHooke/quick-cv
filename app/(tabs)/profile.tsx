@@ -1,7 +1,8 @@
+import { usePremium } from "@/context/PremiumContext";
 import { useTheme } from "@/context/ThemeContext";
 import { auth, db, storage } from "@/firebaseConfig";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -10,7 +11,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -49,6 +50,12 @@ export default function ProfileScreen() {
   // 🔹 Global tema
   const { themeName, theme, setThemeName } = useTheme();
 
+  // Premium durumu
+const { isPremium, pdfLimit, pdfUsageCount, refresh } = usePremium();
+
+  const remaining = Math.max(pdfLimit - pdfUsageCount, 0);
+  const planName = isPremium ? "Tema Paketi (Premium)" : "Ücretsiz Plan";
+
   // 🔹 Firestore'dan kullanıcı bilgilerini çek
   const fetchUserData = async () => {
     const user = auth.currentUser;
@@ -64,9 +71,13 @@ export default function ProfileScreen() {
     }
   };
 
-  useEffect(() => {
+useFocusEffect(
+  useCallback(() => {
     fetchUserData();
-  }, []);
+    refresh();
+  }, [refresh])
+);
+
 
   // 📸 Profil fotoğrafı yükleme
   const handleImageUpload = async () => {
@@ -222,279 +233,385 @@ export default function ProfileScreen() {
     }
   };
 
-  return (
-    <ImageBackground
-      source={theme.bgImage}
-      style={{ flex: 1, width: "100%", height: "100%" }}
-      resizeMode="cover"
-    >
-      <SafeAreaView className="flex-1">
-        <ScrollView
-          contentContainerStyle={{
-            paddingBottom: 32,
+return (
+  <ImageBackground
+    source={theme.bgImage}
+    style={{ flex: 1, width: "100%", height: "100%" }}
+    resizeMode="cover"
+  >
+    <SafeAreaView className="flex-1">
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: 32,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View
+          style={{
+            marginTop: height * 0.04,
+            paddingHorizontal: 24,
+            flexDirection: "row",
+            alignItems: "center",
           }}
-          showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
-          <View
-            style={{
-              marginTop: height * 0.04,
-              paddingHorizontal: 24,
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            {/* Profil resmi */}
-            <Pressable onPress={handleImageUpload}>
-              <Image
-                source={
-                  userData?.photoURL
-                    ? { uri: userData.photoURL }
-                    : require("@/assets/images/react-logo.png")
-                }
-                style={{
-                  width: 96,
-                  height: 96,
-                  borderRadius: 48,
-                  borderWidth: 2,
-                  borderColor: theme.colors.primary,
-                }}
-              />
-            </Pressable>
+          {/* Profil resmi */}
+          <Pressable onPress={handleImageUpload}>
+            <Image
+              source={
+                userData?.photoURL
+                  ? { uri: userData.photoURL }
+                  : require("@/assets/images/react-logo.png")
+              }
+              style={{
+                width: 96,
+                height: 96,
+                borderRadius: 48,
+                borderWidth: 2,
+                borderColor: theme.colors.primary,
+              }}
+            />
+          </Pressable>
 
-            {/* İsim & e-posta */}
-            <View style={{ marginLeft: 16, flex: 1 }}>
-              <Text
-                className="font-extrabold"
-                style={{ fontSize: 24, color: theme.colors.text }}
-                numberOfLines={1}
-              >
-                {userData?.firstName || ""} {userData?.lastName || ""}
-              </Text>
-              <Text
-                className="font-medium mt-1"
-                style={{ fontSize: 14, color: theme.colors.mutedText }}
-                numberOfLines={1}
-              >
-                {userData?.email || ""}
-              </Text>
-            </View>
-          </View>
+          {/* İsim & e-posta + plan rozeti */}
+          <View style={{ marginLeft: 16, flex: 1 }}>
+            <Text
+              className="font-extrabold"
+              style={{ fontSize: 24, color: theme.colors.text }}
+              numberOfLines={1}
+            >
+              {userData?.firstName || ""} {userData?.lastName || ""}
+            </Text>
+            <Text
+              className="font-medium mt-1"
+              style={{ fontSize: 14, color: theme.colors.mutedText }}
+              numberOfLines={1}
+            >
+              {userData?.email || ""}
+            </Text>
 
-          {/* Alt içerik alanı (kartlar) */}
-          <View
-            style={{
-              marginTop: 32,
-              paddingHorizontal: 24,
-            }}
-          >
-            {/* Tema Modu Kartı */}
+            {/* Plan rozeti */}
             <View
               style={{
-                backgroundColor: theme.colors.card,
-                borderRadius: 24,
-                paddingVertical: 16,
-                paddingHorizontal: 16,
-                shadowColor: "#000",
-                shadowOpacity: 0.08,
-                shadowRadius: 8,
-                shadowOffset: { width: 0, height: 2 },
-                elevation: 2,
-                marginBottom: 16,
-              }}
-            >
-              <Pressable
-                onPress={() => setIsThemeOpen((prev) => !prev)}
-                className="flex-row items-center justify-between"
-              >
-                <Text
-                  className="text-lg font-semibold"
-                  style={{ color: theme.colors.text }}
-                >
-                  Tema Modu
-                </Text>
-                <Text
-                  className="text-xl"
-                  style={{ color: theme.colors.primary }}
-                >
-                  {isThemeOpen ? "▲" : "▼"}
-                </Text>
-              </Pressable>
-
-              {isThemeOpen && (
-                <View className="mt-4 space-y-4">
-                  <View>{renderThemeOption("Açık", "light")}</View>
-                  <View className="mt-3">
-                    {renderThemeOption("Koyu", "dark")}
-                  </View>
-                </View>
-              )}
-            </View>
-
-            {/* Şifremi Değiştir Kartı */}
-            <View
-              style={{
-                backgroundColor: theme.colors.card,
-                borderRadius: 24,
-                paddingVertical: 16,
-                paddingHorizontal: 16,
-                shadowColor: "#000",
-                shadowOpacity: 0.08,
-                shadowRadius: 8,
-                shadowOffset: { width: 0, height: 2 },
-                elevation: 2,
-              }}
-            >
-              <Pressable
-                onPress={() => setIsPasswordOpen((prev) => !prev)}
-                className="flex-row items-center justify-between"
-              >
-                <Text
-                  className="text-lg font-semibold"
-                  style={{ color: theme.colors.text }}
-                >
-                  Şifremi Değiştir
-                </Text>
-                <Text
-                  className="text-xl"
-                  style={{ color: theme.colors.historythemeLabel }}
-                >
-                  {isPasswordOpen ? "▲" : "▼"}
-                </Text>
-              </Pressable>
-
-              {isPasswordOpen && (
-                <View className="mt-4">
-                  {/* Eski Şifre */}
-                  <Text
-                    className="text-sm mb-1"
-                    style={{ color: theme.colors.mutedText }}
-                  >
-                    Eski Şifre
-                  </Text>
-                  <TextInput
-                    value={oldPassword}
-                    onChangeText={setOldPassword}
-                    secureTextEntry
-                    placeholder="Eski şifrenizi girin"
-                    placeholderTextColor="#A0A0A0"
-                    style={{
-                      height: 44,
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      borderColor: theme.colors.inputBorder,
-                      paddingHorizontal: 12,
-                      backgroundColor: theme.colors.inputBg,
-                      marginBottom: 12,
-                      color: theme.colors.text,
-                    }}
-                  />
-
-                  {/* Yeni Şifre */}
-                  <Text
-                    className="text-sm mb-1"
-                    style={{ color: theme.colors.mutedText }}
-                  >
-                    Yeni Şifre
-                  </Text>
-                  <TextInput
-                    value={newPassword}
-                    onChangeText={setNewPassword}
-                    secureTextEntry
-                    placeholder="Yeni şifrenizi girin"
-                    placeholderTextColor="#A0A0A0"
-                    style={{
-                      height: 44,
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      borderColor: theme.colors.inputBorder,
-                      paddingHorizontal: 12,
-                      backgroundColor: theme.colors.inputBg,
-                      marginBottom: 12,
-                      color: theme.colors.text,
-                    }}
-                  />
-
-                  {/* Yeni Şifre Tekrar */}
-                  <Text
-                    className="text-sm mb-1"
-                    style={{ color: theme.colors.mutedText }}
-                  >
-                    Yeni Şifre Tekrar
-                  </Text>
-                  <TextInput
-                    value={newPasswordAgain}
-                    onChangeText={setNewPasswordAgain}
-                    secureTextEntry
-                    placeholder="Yeni şifrenizi tekrar girin"
-                    placeholderTextColor="#A0A0A0"
-                    style={{
-                      height: 44,
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      borderColor: theme.colors.inputBorder,
-                      paddingHorizontal: 12,
-                      backgroundColor: theme.colors.inputBg,
-                      marginBottom: 16,
-                      color: theme.colors.text,
-                    }}
-                  />
-
-                  {/* Şifremi Değiştir Butonu */}
-                  <Pressable
-                    onPress={handleChangePassword}
-                    disabled={isChangingPassword}
-                    style={{
-                      width: "100%",
-                      height: 48,
-                      borderRadius: 24,
-                      backgroundColor: theme.colors.primary,
-                      opacity: isChangingPassword ? 0.7 : 1,
-                      flexDirection: "row",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Text className="text-white text-[16px] font-medium mr-2">
-                      {isChangingPassword
-                        ? "Değiştiriliyor..."
-                        : "Şifremi Değiştir"}
-                    </Text>
-                    {!isChangingPassword && (
-                      <Text className="text-white text-lg">✓</Text>
-                    )}
-                  </Pressable>
-                </View>
-              )}
-            </View>
-
-            {/* Çıkış Yap */}
-            <Pressable
-              onPress={handleLogout}
-              style={{
-                width: width * 0.6,
-                height: 52,
-                marginTop: 32,
-                borderRadius: 26,
-                backgroundColor: theme.colors.logoutButtonBg,
+                marginTop: 8,
+                alignSelf: "flex-start",
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 999,
                 flexDirection: "row",
-                justifyContent: "center",
+                
                 alignItems: "center",
-                alignSelf: "center",
+                backgroundColor: isPremium ? "#22c55e90" : "#6b728090",
+                borderWidth: 1,
+                borderColor: isPremium ? "#22f95e" : "#ffffff",
               }}
             >
-              <Text className="text-white text-[16px] font-medium mr-2">
-                Çıkış Yap
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: "700",
+                  color: isPremium ? "#fff" : "#ffffff",
+                }}
+              >
+                {isPremium ? "PREMIUM PLAN" : "ÜCRETSİZ PLAN"}
               </Text>
-              <Image
-                source={require("@/assets/icons/chevron-right.png")}
-                style={{ width: 16, height: 16 }}
-                resizeMode="contain"
-              />
-            </Pressable>
+            </View>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </ImageBackground>
-  );
+        </View>
+
+        {/* Alt içerik alanı (kartlar) */}
+        <View
+          style={{
+            marginTop: 32,
+            paddingHorizontal: 24,
+          }}
+        >
+          {/* 📦 Plan Bilgisi Kartı */}
+          <View
+            style={{
+              backgroundColor: theme.colors.card,
+              borderRadius: 24,
+              paddingVertical: 16,
+              paddingHorizontal: 16,
+              shadowColor: "#000",
+              shadowOpacity: 0.08,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 2,
+              marginBottom: 16,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: theme.colors.mutedText,
+                marginBottom: 4,
+              }}
+            >
+              Mevcut Planın
+            </Text>
+            <Text
+              style={{
+                fontSize: 22,
+                fontWeight: "800",
+                color: theme.colors.text,
+                marginBottom: 12,
+              }}
+            >
+              {planName}
+            </Text>
+
+            {/* PDF Kullanımı */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 6,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: theme.colors.mutedText,
+                }}
+              >
+                Bu ay oluşturulan PDF:
+              </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "700",
+                  color: isPremium ? "#22c55e" : "#f97316",
+                }}
+              >
+                {pdfUsageCount} / {pdfLimit}
+              </Text>
+            </View>
+
+            <Text
+              style={{
+                fontSize: 12,
+                color: theme.colors.mutedText,
+              }}
+            >
+              Kalan hakkın:{" "}
+              <Text style={{ fontWeight: "700", color: theme.colors.text }}>
+                {remaining} PDF
+              </Text>
+            </Text>
+
+            {/* İstersen ileride buraya "Tema Paketini Satın Al" butonu da ekleyebiliriz */}
+          </View>
+
+          {/* Tema Modu Kartı */}
+          <View
+            style={{
+              backgroundColor: theme.colors.card,
+              borderRadius: 24,
+              paddingVertical: 16,
+              paddingHorizontal: 16,
+              shadowColor: "#000",
+              shadowOpacity: 0.08,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 2,
+              marginBottom: 16,
+            }}
+          >
+            <Pressable
+              onPress={() => setIsThemeOpen((prev) => !prev)}
+              className="flex-row items-center justify-between"
+            >
+              <Text
+                className="text-lg font-semibold"
+                style={{ color: theme.colors.text }}
+              >
+                Tema Modu
+              </Text>
+              <Text
+                className="text-xl"
+                style={{ color: theme.colors.primary }}
+              >
+                {isThemeOpen ? "▲" : "▼"}
+              </Text>
+            </Pressable>
+
+            {isThemeOpen && (
+              <View className="mt-4 space-y-4">
+                <View>{renderThemeOption("Açık", "light")}</View>
+                <View className="mt-3">
+                  {renderThemeOption("Koyu", "dark")}
+                </View>
+              </View>
+            )}
+          </View>
+
+          {/* Şifremi Değiştir Kartı */}
+          <View
+            style={{
+              backgroundColor: theme.colors.card,
+              borderRadius: 24,
+              paddingVertical: 16,
+              paddingHorizontal: 16,
+              shadowColor: "#000",
+              shadowOpacity: 0.08,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 2,
+            }}
+          >
+            <Pressable
+              onPress={() => setIsPasswordOpen((prev) => !prev)}
+              className="flex-row items-center justify-between"
+            >
+              <Text
+                className="text-lg font-semibold"
+                style={{ color: theme.colors.text }}
+              >
+                Şifremi Değiştir
+              </Text>
+              <Text
+                className="text-xl"
+                style={{ color: theme.colors.historythemeLabel }}
+              >
+                {isPasswordOpen ? "▲" : "▼"}
+              </Text>
+            </Pressable>
+
+            {isPasswordOpen && (
+              <View className="mt-4">
+                {/* Eski Şifre */}
+                <Text
+                  className="text-sm mb-1"
+                  style={{ color: theme.colors.mutedText }}
+                >
+                  Eski Şifre
+                </Text>
+                <TextInput
+                  value={oldPassword}
+                  onChangeText={setOldPassword}
+                  secureTextEntry
+                  placeholder="Eski şifrenizi girin"
+                  placeholderTextColor="#A0A0A0"
+                  style={{
+                    height: 44,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: theme.colors.inputBorder,
+                    paddingHorizontal: 12,
+                    backgroundColor: theme.colors.inputBg,
+                    marginBottom: 12,
+                    color: theme.colors.text,
+                  }}
+                />
+
+                {/* Yeni Şifre */}
+                <Text
+                  className="text-sm mb-1"
+                  style={{ color: theme.colors.mutedText }}
+                >
+                  Yeni Şifre
+                </Text>
+                <TextInput
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry
+                  placeholder="Yeni şifrenizi girin"
+                  placeholderTextColor="#A0A0A0"
+                  style={{
+                    height: 44,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: theme.colors.inputBorder,
+                    paddingHorizontal: 12,
+                    backgroundColor: theme.colors.inputBg,
+                    marginBottom: 12,
+                    color: theme.colors.text,
+                  }}
+                />
+
+                {/* Yeni Şifre Tekrar */}
+                <Text
+                  className="text-sm mb-1"
+                  style={{ color: theme.colors.mutedText }}
+                >
+                  Yeni Şifre Tekrar
+                </Text>
+                <TextInput
+                  value={newPasswordAgain}
+                  onChangeText={setNewPasswordAgain}
+                  secureTextEntry
+                  placeholder="Yeni şifrenizi tekrar girin"
+                  placeholderTextColor="#A0A0A0"
+                  style={{
+                    height: 44,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: theme.colors.inputBorder,
+                    paddingHorizontal: 12,
+                    backgroundColor: theme.colors.inputBg,
+                    marginBottom: 16,
+                    color: theme.colors.text,
+                  }}
+                />
+
+                {/* Şifremi Değiştir Butonu */}
+                <Pressable
+                  onPress={handleChangePassword}
+                  disabled={isChangingPassword}
+                  style={{
+                    width: "100%",
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: theme.colors.primary,
+                    opacity: isChangingPassword ? 0.7 : 1,
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text className="text-white text-[16px] font-medium mr-2">
+                    {isChangingPassword
+                      ? "Değiştiriliyor..."
+                      : "Şifremi Değiştir"}
+                  </Text>
+                  {!isChangingPassword && (
+                    <Text className="text-white text-lg">✓</Text>
+                  )}
+                </Pressable>
+              </View>
+            )}
+          </View>
+
+          {/* Çıkış Yap */}
+          <Pressable
+            onPress={handleLogout}
+            style={{
+              width: width * 0.6,
+              height: 52,
+              marginTop: 32,
+              borderRadius: 26,
+              backgroundColor: theme.colors.logoutButtonBg,
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              alignSelf: "center",
+            }}
+          >
+            <Text className="text-white text-[16px] font-medium mr-2">
+              Çıkış Yap
+            </Text>
+            <Image
+              source={require("@/assets/icons/chevron-right.png")}
+              style={{ width: 16, height: 16 }}
+              resizeMode="contain"
+            />
+          </Pressable>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  </ImageBackground>
+);
 }
