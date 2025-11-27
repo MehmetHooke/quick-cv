@@ -1,50 +1,177 @@
-# Welcome to your Expo app 👋
+# 📝 QuickCV — Akıllı CV Oluşturma Uygulaması
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+QuickCV, kullanıcıların profesyonel CV'lerini saniyeler içinde oluşturmasını sağlayan modern bir **React Native (Expo Router)** tabanlı mobil uygulamadır.  
+Uygulama, kullanıcı dostu adım adım CV sihirbazı, özelleştirilebilir temalar, gerçek zamanlı önizleme ve **Google Cloud üzerinde çalışan HTML-to-PDF render servisi** ile profesyonel kalitede çıktılar sunar.
 
-## Get started
+---
 
-1. Install dependencies
+## 🚀 Özellikler
 
-   ```bash
-   npm install
-   ```
+### 📌 CV Oluşturma Sihirbazı  
+- Kişisel bilgiler  
+- Eğitim geçmişi  
+- İş deneyimleri  
+- Yetenekler  
+- Sertifikalar  
+- Diller  
+- Özet / Hakkımda bölümü  
+- Ek iletişim bilgileri  
+- Profil fotoğrafı yükleme
 
-2. Start the app
+### 🎨 Premium CV Şablonları  
+Uygulama içerisinde sunulan profesyonel tasarımlar:
 
-   ```bash
-   npx expo start
-   ```
+- **Classic Blue**
+- **Modern Gray**
+- **Minimal White**
+- **Pink Modern**
+- **Teal Wave**
+- + Yeni premium temalar…
 
-In the output, you'll find options to open the app in a
+### 🖨️ PDF Oluşturma (Server Side Rendering)  
+QuickCV çıktıları, cihaz üzerinde değil **Google Cloud Run** üzerinde çalışan özel bir sunucuda HTML’den PDF’e dönüştürülür.  
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Bu mimari sayesinde:
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Şablon tutarlılığı %100  
+- Pixel-perfect PDF çıktısı (iOS + Android)  
+- Hızlı render süresi  
+- Cihaz performansından bağımsız çalışma  
 
-## Get a fresh project
+### ☁️ Google Cloud & Firebase Entegrasyonu  
+- Firestore: CV kayıtları  
+- Storage: Profil fotoğrafları  
+- Firebase Auth: Google + Email/Password giriş  
+- Cloud Run: HTML → PDF servisi  
 
-When you're ready, run:
+### 🔍 CV Önizleme  
+- Tek bir `PreviewCV` bileşeni  
+- Dinamik, gerçek zamanlı veri gösterimi  
+- Tüm temalarla uyumlu yapı  
+
+### 📂 “CV’lerim” Sayfası  
+- CV listeleme  
+- Düzenleme  
+- PDF’e dönüştürme  
+- Silme  
+
+---
+
+## 🏗️ Kullanılan Teknolojiler
+
+### Frontend
+- **React Native + Expo**
+- **Expo Router**
+- **TypeScript**
+- **Context API**
+- **React Native UI Components**
+
+### Backend (Render Sunucusu)
+- **Node.js**
+- **Playwright** (HTML-to-PDF)
+- **Docker**
+- **Google Cloud Run**
+
+### Database & Authentication
+- **Firebase Firestore**
+- **Firebase Storage**
+- **Firebase Auth**
+
+---
+
+## 📁 Proje Yapısı
 
 ```bash
-npm run reset-project
-```
+/app
+  /auth
+  /newcv
+  /components
+    /cvThemes
+  /lib
+  /assets
+/src
+  /templates   # HTML CV şablonları
+  /fonts
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-## Learn more
+Kurulum
+1️⃣ Depoyu Klonla
+git clone https://github.com/kullaniciadi/quickcv.git
+cd quickcv
 
-To learn more about developing your project with Expo, look at the following resources:
+2️⃣ Bağımlılıkları Kur
+npm install
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+3️⃣ Ortam Değişkenlerini Ayarla
 
-## Join the community
+Proje dizinine .env ekleyin:
 
-Join our community of developers creating universal apps.
+EXPO_PUBLIC_FIREBASE_API_KEY=
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+EXPO_PUBLIC_FIREBASE_APP_ID=
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+EXPO_PUBLIC_RENDER_API_KEY=
+EXPO_PUBLIC_RENDER_ENDPOINT=
+
+4️⃣ Uygulamayı Başlat
+npm run start
+# veya
+npx expo start
+
+🖥️ Render Sunucusu (Cloud Run)
+
+Uygulama, PDF oluşturmak için özel bir HTML-to-PDF sunucusu kullanır.
+Sunucu:
+
+HTML şablonları alır
+
+Kullanıcı verilerini işler
+
+Playwright ile kaliteli A4 PDF üretir
+
+Binary olarak geri gönderir
+
+Render API Örneği
+await fetch(`${endpoint}/render`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/pdf",
+    "x-api-key": API_KEY
+  },
+  body: JSON.stringify({ data, theme })
+});
+
+🧩 Yapılacaklar (Roadmap)
+
+ Yeni premium temalar
+
+ Tema renk & font kişiselleştirme
+
+ CV TR → EN otomatik çeviri
+
+ CV’yi LinkedIn’e aktarma
+
+ Örnek CV galerisi
+
+ PDF kalite/boyut optimizasyonu
+
+ Kullanıcı profil sayfası
+
+🤝 Katkıda Bulunma
+
+Repoyu fork'layın
+
+Yeni bir branch açın: feature/ozellik-adi
+
+Değişikliklerinizi commit'leyin
+
+Pull Request gönderin
+
+📄 Lisans
+
+Bu proje MIT License ile lisanslanmıştır.
+Detaylar için LICENSE dosyasına göz atabilirsiniz.
