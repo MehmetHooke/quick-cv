@@ -17,13 +17,15 @@ import {
   Dimensions,
   Image,
   ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
@@ -35,6 +37,7 @@ interface UserData {
 }
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const [userData, setUserData] = useState<UserData | null>(null);
 
   // 🔹 Tema & Şifre accordion state'leri
@@ -234,18 +237,24 @@ useFocusEffect(
   };
 
 return (
-  <ImageBackground
-    source={theme.bgImage}
-    style={{ flex: 1, width: "100%", height: "100%" }}
-    resizeMode="cover"
-  >
-    <SafeAreaView className="flex-1">
-      <ScrollView
-        contentContainerStyle={{
-          paddingBottom: 32,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
+<ImageBackground
+      source={theme.bgImage}
+      style={{ flex: 1, width: "100%", height: "100%" }}
+      resizeMode="cover"
+    >
+      <SafeAreaView className="flex-1">
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
+          <ScrollView
+            contentContainerStyle={{
+              paddingBottom: insets.bottom + 120,
+            }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
         {/* Header */}
         <View
           style={{
@@ -432,7 +441,7 @@ return (
               </Text>
               <Text
                 className="text-xl"
-                style={{ color: theme.colors.primary }}
+                style={{ color: theme.colors.historythemeLabel }}
               >
                 {isThemeOpen ? "▲" : "▼"}
               </Text>
@@ -610,8 +619,9 @@ return (
             />
           </Pressable>
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  </ImageBackground>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </ImageBackground>
 );
 }

@@ -265,10 +265,10 @@ export default function PersonalInfoScreen() {
     }}
   >
     <Text
-      className="font-medium"
+      className="font-extrabold"
       style={{ color: theme.colors.mutedText }}
     >
-      Fotoğraf Yükle veya Çek
+      Fotoğraf Yükle
     </Text>
   </TouchableOpacity>
 )}

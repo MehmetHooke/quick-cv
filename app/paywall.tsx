@@ -1,14 +1,15 @@
 // app/paywall.tsx
 import { Ionicons } from "@expo/vector-icons";
+import { logEvent } from "app/utils/analytics";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    ImageBackground,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ImageBackground,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { usePremium } from "@/context/PremiumContext";
@@ -31,7 +32,13 @@ export default function PaywallScreen() {
 
   const [loading, setLoading] = useState(false);
 
+      setLoading(true);
+      useEffect(() => {
+  logEvent("paywall_opened");
+}, []);
+
   const handleFakePurchase = async () => {
+    logEvent("purchase_attempt");
     const user = auth.currentUser;
     if (!user) {
       alert("Premium satın almak için önce giriş yapmalısın.");
@@ -39,7 +46,6 @@ export default function PaywallScreen() {
     }
 
     try {
-      setLoading(true);
 
       const ref = doc(db, "users", user.uid, "entitlements", "main");
       const monthKey = getCurrentMonthKey();
@@ -56,10 +62,12 @@ export default function PaywallScreen() {
       await refresh(); // PremiumContext'i güncelle
 
       alert("Tema Paketin ve genişletilmiş PDF hakkın başarıyla aktifleştirildi 🎉");
+      logEvent("purchase_success");
       router.back();
     } catch (err) {
       console.error("Fake purchase error:", err);
       alert("Satın alma işlemi sırasında bir hata oluştu. Lütfen tekrar dene.");
+      logEvent("purchase_failed", { reason: err });
     } finally {
       setLoading(false);
     }

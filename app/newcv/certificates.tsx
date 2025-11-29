@@ -10,12 +10,15 @@ import React, { useState } from "react";
 import {
   Alert,
   ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type CertificateItem = {
   name: string;
@@ -109,13 +112,24 @@ export default function CertificatesScreen() {
   };
 
   return (
-    <ImageBackground
+ <ImageBackground
     style={{ flex: 1, backgroundColor: theme.colors.background }}
     source={theme.bgImage}
     resizeMode="cover"
-    >
-      <BackButton />
-    <ScrollView className="flex-1 px-5 py-8 mt-5">
+  >
+    <BackButton />
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+      >
+        <ScrollView
+          className="flex-1 px-5 py-8 mt-5"
+          contentContainerStyle={{ paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
       <View className="items-center mb-6">
         <Text className="text-2xl font-bold  mb-1" style={{ color: theme.colors.primary }}>
           Sertifikalar
@@ -222,7 +236,9 @@ export default function CertificatesScreen() {
         isOptional={true}   // bu adım zorunlu
         
       />
-    </ScrollView>
-    </ImageBackground>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  </ImageBackground>
   );
 }

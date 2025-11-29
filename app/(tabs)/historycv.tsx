@@ -200,14 +200,14 @@ const handleDelete = (firestoreId: string) => {
           style={{ borderColor: theme.colors.inputBorder }}
         >
           <Text
-            className="text-2xl font-bold"
+            className="text-3xl font-extrabold  text-center mt-4 mb-7"
             style={{ color: theme.colors.primary }}
           >
             Benim CV'lerim
           </Text>
           <Text
-            className="mt-1"
-            style={{ color: theme.colors.mutedText }}
+            className="mt-1 font-bold"
+            style={{ color: theme.colors.text }}
           >
             Geçmişte oluşturduğun CV'leri buradan görüntüleyip düzenleyebilirsin.
           </Text>
@@ -310,12 +310,7 @@ const handleDelete = (firestoreId: string) => {
                       Son güncelleme:{" "}
                       {formatDate(item.updatedAt || item.createdAt)}
                     </Text>
-                    <Text
-                      className="text-xs font-semibold"
-                      style={{ color: theme.colors.primary }}
-                    >
-                      Düzenle / Görüntüle
-                    </Text>
+
 
                       {/* Sil butonu */}
                     <TouchableOpacity

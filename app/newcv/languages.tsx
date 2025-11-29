@@ -9,6 +9,8 @@ import React, { useState } from "react";
 import {
   Alert,
   ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -85,13 +87,18 @@ export default function LanguagesScreen() {
 
 
   return (
-    <ImageBackground
-      source={theme.bgImage}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-    >
-      <BackButton />
-      <SafeAreaView className="flex-1">
+  <ImageBackground
+    source={theme.bgImage}
+    style={{ flex: 1 }}
+    resizeMode="cover"
+  >
+    <BackButton />
+    <SafeAreaView className="flex-1">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+      >
         <ScrollView
           className="flex-1 px-5 py-8 mt-5"
           contentContainerStyle={{ paddingBottom: 40 }}
@@ -209,7 +216,8 @@ export default function LanguagesScreen() {
             </Text>
           </TouchableOpacity>
         </ScrollView>
-      </SafeAreaView>
-    </ImageBackground>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  </ImageBackground>
   );
 }

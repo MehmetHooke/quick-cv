@@ -2,6 +2,8 @@ import { auth } from "@/firebaseConfig";
 import { router } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
+//new analytics import
+import { logEvent, setUserId } from "app/utils/analytics";
 import {
   Alert,
   Dimensions,
@@ -30,17 +32,28 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Uyarı", "Lütfen tüm alanları doldurun.");
-      return;
-    }
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/(tabs)");
-    } catch (error: any) {
-      Alert.alert("Giriş Hatası", "Kullanıcı Adı Veya Şifre Hatalı !");
-    }
-  };
+  if (!email || !password) {
+    Alert.alert("Uyarı", "Lütfen tüm alanları doldurun.");
+    return;
+  }
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const user = cred.user;
+
+    await setUserId(user.uid);
+    await logEvent("login_success", {
+      method: "password",
+    });
+
+    router.replace("/(tabs)");
+  } catch (error: any) {
+    await logEvent("login_error", {
+      code: error?.code ?? "unknown",
+    });
+    Alert.alert("Giriş Hatası", "Kullanıcı Adı Veya Şifre Hatalı !");
+  }
+};
 
   return (
     <ImageBackground
@@ -50,16 +63,18 @@ export default function LoginScreen() {
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: "transparent" }}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
           <ScrollView
             contentContainerStyle={{
               flexGrow: 1,
-              justifyContent: "center",
               alignItems: "center",
-              paddingVertical: 40,
+              paddingTop: 80,
+              paddingBottom: 40,
             }}
+            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
             {/* 🔹 LOGO */}
@@ -129,17 +144,23 @@ export default function LoginScreen() {
             </Pressable>
 
             {/* 🧾 Kayıt linki */}
-            <Text className="text-[15px] text-[#1C1C1C] font-extrabold mb-5">
+            <Text className="text-xl mt-6 text-[#1C1C1C] font-extrabold mb-5">
               Kayıtlı değil misin?{" "}
               <Text
                 onPress={() => router.push("/auth/register")}
                 className="text-[#0C94B9] underline"
               >
-                Kayıt ol.
+                Kayıt olmak için tıkla.
               </Text>
-            </Text>
 
-            {/* // İLERİDE GOOGLE GİRİŞ İÇİN BURAYA BUTON EKLERİZ */}
+              
+            </Text>
+            <Text
+                onPress={() => router.push("/auth/forgotpassword")}
+                className="text-[#0C94B9] underline text-xl font-extrabold"
+            >
+                Şifremi Unuttum
+            </Text>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

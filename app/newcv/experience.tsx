@@ -9,12 +9,16 @@ import React, { useState } from "react";
 import {
   Alert,
   ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type ExperienceItem = {
   company: string;
@@ -113,14 +117,24 @@ export default function ExperienceScreen() {
   };
 
   return (
-
-    <ImageBackground
+     <ImageBackground
     source={theme.bgImage}
     style={{ flex: 1 }}
     resizeMode="cover"
-    >
-      <BackButton />
-    <ScrollView className="flex-1 px-5 py-8 mt-5">
+  >
+    <BackButton />
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+      >
+        <ScrollView
+          className="flex-1 px-5 py-8 mt-5"
+          contentContainerStyle={{ paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
       <View className="items-center mb-6">
         <Text
         style={{ color: theme.colors.primary }}
@@ -244,7 +258,9 @@ export default function ExperienceScreen() {
           {loading ? "Kaydediliyor..." : "Devam Et →"}
         </Text>
       </TouchableOpacity>
-    </ScrollView>
-    </ImageBackground>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  </ImageBackground>
   );
 }

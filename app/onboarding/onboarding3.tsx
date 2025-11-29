@@ -1,16 +1,16 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 import React from "react";
 import {
-  View,
-  Text,
+  Dimensions,
   Image,
   ImageBackground,
   Pressable,
-  Dimensions,
+  Text,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import * as Animatable from "react-native-animatable";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
@@ -22,7 +22,7 @@ export default function Onboarding3() {
 
   const handleStart = async () => {
   await AsyncStorage.setItem("onboardingSeen", "true");
-  router.replace("/(tabs)");
+  router.replace("/auth/login");
 };
 
   return (

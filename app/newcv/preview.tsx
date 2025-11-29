@@ -3,6 +3,7 @@ import { useCV } from "@/context/CVContext";
 import { usePremium } from "@/context/PremiumContext";
 import { useTheme } from "@/context/ThemeContext";
 import { auth, db } from "@/firebaseConfig";
+import { logEvent } from "app/utils/analytics";
 import { useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
@@ -199,7 +200,12 @@ export default function PreviewScreen() {
 
       setProgress(100);
       setCompleted(true);
-
+      //- analytics log event
+      await logEvent("pdf_generated", {
+      theme: cvData.theme,
+      is_premium_user: isPremium,
+      });
+    //---
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, {
           mimeType: "application/pdf",
@@ -336,7 +342,7 @@ export default function PreviewScreen() {
 
                   <View className="w-full mt-4 h-2 rounded-full bg-gray-200 overflow-hidden">
                     <View
-                      className="h-full bg-cyan-600"
+                      className="h-full"
                       style={{ width: `${progress}%` }}
                     />
                   </View>

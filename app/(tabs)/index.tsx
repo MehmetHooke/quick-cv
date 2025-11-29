@@ -4,9 +4,11 @@ import CVCard from "@/components/CVCard";
 import { useCV } from "@/context/CVContext";
 import { usePremium } from "@/context/PremiumContext";
 import { useTheme } from "@/context/ThemeContext";
+import { auth, db } from "@/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -16,7 +18,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -268,6 +270,22 @@ export default function HomeScreen() {
       onUse={handleUseThemeDirect}
     />
   );
+  const [firstName, setFirstName] = useState("");
+    // Kullanıcı bilgisini Firestore'dan çek
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        setFirstName(data.firstName || "");
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   return (
     <ImageBackground
@@ -278,9 +296,15 @@ export default function HomeScreen() {
       <View className="flex-1">
         {/* Başlık */}
         <Text
-          className="text-2xl font-extrabold text-white text-center mt-16 mb-7"
+          style={{color: theme.colors.primary}}
+          className="text-3xl font-extrabold  text-center mt-16 mb-7"
         >
           CV Tasarımları
+        </Text>
+        <Text 
+        style={{color: theme.colors.primary}}
+        className="text-2xl font-extrabold text-start  ml-6  mt-5 mb-4">
+          Hoş Geldin {firstName}
         </Text>
 
 
@@ -316,50 +340,50 @@ export default function HomeScreen() {
             }
           }}
         >
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <View className="flex-1 bg-black/85 justify-center items-center px-5">
+              {/* Kapat butonu */}
+              <View className="w-full items-end mb-4">
+                <Pressable
+                  onPress={() => setSelected(null)}
+                  className="flex-row items-center rounded-lg px-5 py-2"
+                  style={{ backgroundColor: theme.colors.buttonBg }}
+                >
+                  <Ionicons name="close" size={22} color="white" />
+                  <Text className="text-white text-lg font-semibold ml-2">
+                    Kapat
+                  </Text>
+                </Pressable>
+              </View>
 
-          
-          <View className="flex-1 bg-black/85 justify-center items-center px-5">
-          
-            <View className="w-full items-end mb-4">
+              {/* 🔍 Pinch + Pan + Double-Tap */}
+              <GestureDetector gesture={composedGesture}>
+                <Animated.Image
+                  source={selected?.image}
+                  style={[
+                    {
+                      width: IMG_W,
+                      height: IMG_H,
+                      borderRadius: 12,
+                    },
+                    previewStyle,
+                  ]}
+                  resizeMode="contain"
+                />
+              </GestureDetector>
+
               <Pressable
-                onPress={() => setSelected(null)}
-                className="flex-row items-center rounded-lg px-5 py-2"
+                onPress={handleUseThemeFromModal}
+                className="mt-6 rounded-lg px-8 py-4"
                 style={{ backgroundColor: theme.colors.buttonBg }}
+                disabled={!selected}
               >
-                <Ionicons name="close" size={22} color="white" />
-                <Text className="text-white text-lg font-semibold ml-2">
-                  Kapat
+                <Text className="text-white text-lg font-semibold">
+                  Bu Temayı Kullan
                 </Text>
               </Pressable>
             </View>
-
-            {/* 🔍 Pinch + Pan + Double-Tap */}
-            <GestureDetector gesture={composedGesture}>
-              <Animated.Image
-                source={selected?.image}
-                style={[
-                  {
-                    width: IMG_W,
-                    height: IMG_H,
-                    borderRadius: 12,
-                  },
-                  previewStyle,
-                ]}
-                resizeMode="contain"
-              />
-            </GestureDetector>
-
-            <Pressable
-              onPress={handleUseThemeFromModal}
-              className="mt-6 rounded-lg px-8 py-4"
-              style={{ backgroundColor: theme.colors.buttonBg }}
-              disabled={!selected}
-            >
-              <Text className="text-white text-lg font-semibold">
-                Bu Temayı Kullan
-              </Text>
-            </Pressable>
-          </View>
+          </GestureHandlerRootView>
         </Modal>
       </View>
     </ImageBackground>

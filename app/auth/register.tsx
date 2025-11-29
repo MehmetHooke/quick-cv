@@ -1,26 +1,27 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  ImageBackground,
-  Pressable,
-  Image,
-  Alert,
-  Dimensions,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { app, db } from "@/firebaseConfig";
+import { logEvent, setUserId } from "app/utils/analytics";
 import { router } from "expo-router";
 import {
-  getAuth,
   createUserWithEmailAndPassword,
+  getAuth,
   updateProfile,
 } from "firebase/auth";
-import { app, db } from "@/firebaseConfig";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import React, { useState } from "react";
+import {
+  Alert,
+  Dimensions,
+  Image,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
@@ -59,32 +60,40 @@ export default function RegisterScreen() {
       photoURL: "",
       createdAt: serverTimestamp(),
     });
-
+    //--
+    await setUserId(user.uid);
+    await logEvent("sign_up_success");
+    //--
     Alert.alert("Başarılı", "Kayıt işlemi tamamlandı!");
     router.replace("/(tabs)");
   } catch (error: any) {
-    Alert.alert("Kayıt Hatası", error.message);
+    //--
+      await logEvent("sign_up_error");
+    //--
+      Alert.alert("Kayıt Hatası", error.message);
   }
 };
 
   return (
-    <ImageBackground
+   <ImageBackground
       source={require("@/assets/images/onboarding-2.png")}
       style={{ flex: 1, width: "100%", height: "100%" }}
       resizeMode="cover"
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: "transparent" }}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
           <ScrollView
             contentContainerStyle={{
               flexGrow: 1,
-              justifyContent: "flex-start",
               alignItems: "center",
-              paddingVertical: 40,
+              paddingTop: 40,
+              paddingBottom: 40,
             }}
+            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
             {/* 🔹 Logo */}

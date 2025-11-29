@@ -112,7 +112,7 @@ export default function CVCard({
           style={{
             width: "100%",
             height: imageHeight,
-            borderRadius: 14,
+            borderRadius: 8,
             overflow: "hidden", // 🔥 Kenarlardaki boşluk algısını azaltmak için crop
             backgroundColor: theme.colors.inputBg,
           }}

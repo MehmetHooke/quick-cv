@@ -1,5 +1,7 @@
 // context/PremiumContext.tsx
 import { auth, db } from "@/firebaseConfig";
+import { logEvent, setUserProperty } from "app/utils/analytics";
+
 import {
   doc,
   getDoc,
@@ -140,9 +142,16 @@ export const PremiumProvider = ({ children }: PremiumProviderProps) => {
         pdfUsageCount: increment(1),
         updatedAt: serverTimestamp(),
       });
+
+            // 🔹 Analytics event: her PDF'de logla
+      logEvent("pdf_generated", {
+        plan_type: isPremium ? "premium" : "free",
+      });
     } catch (err) {
       console.error("PDF usage artırılırken hata:", err);
     }
+
+    
   };
 
   useEffect(() => {
@@ -152,7 +161,14 @@ export const PremiumProvider = ({ children }: PremiumProviderProps) => {
 
     return () => unsub();
   }, []);
+    // 🔹 Analytics: premium bilgilerini user property olarak yaz
+useEffect(() => {
+  if (loading) return;
 
+  setUserProperty("plan_type", isPremium ? "premium" : "free");
+  setUserProperty("pdf_limit", String(pdfLimit ?? ""));
+  setUserProperty("pdf_usage_count", String(pdfUsageCount ?? ""));
+}, [loading, isPremium, pdfLimit, pdfUsageCount]);
   return (
     <PremiumContext.Provider
       value={{
