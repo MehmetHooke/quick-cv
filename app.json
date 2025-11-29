@@ -13,6 +13,7 @@
       "bundleIdentifier": "com.anonymous.quicklycv"
     },
     "android": {
+      "versionCode": 10,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
