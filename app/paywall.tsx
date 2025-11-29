@@ -32,10 +32,9 @@ export default function PaywallScreen() {
 
   const [loading, setLoading] = useState(false);
 
-      setLoading(true);
-      useEffect(() => {
-  logEvent("paywall_opened");
-}, []);
+  useEffect(() => {
+    logEvent("paywall_opened");
+  }, []);
 
   const handleFakePurchase = async () => {
     logEvent("purchase_attempt");
@@ -46,6 +45,7 @@ export default function PaywallScreen() {
     }
 
     try {
+      setLoading(true);
 
       const ref = doc(db, "users", user.uid, "entitlements", "main");
       const monthKey = getCurrentMonthKey();
@@ -53,14 +53,13 @@ export default function PaywallScreen() {
       await updateDoc(ref, {
         themePack: true,
         purchasedAt: serverTimestamp(),
-        pdfLimit: 50, // 🔹 Premium aylık PDF limiti
+        pdfLimit: 50,
         pdfUsageMonthKey: monthKey,
         pdfUsageCount: 0,
         updatedAt: serverTimestamp(),
       });
 
-      await refresh(); // PremiumContext'i güncelle
-
+      await refresh();
       alert("Tema Paketin ve genişletilmiş PDF hakkın başarıyla aktifleştirildi 🎉");
       logEvent("purchase_success");
       router.back();

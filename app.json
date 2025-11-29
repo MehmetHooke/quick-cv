@@ -2,7 +2,7 @@
   "expo": {
     "name": "QuickCV",
     "slug": "QuicklyCV",
-    "version": "1.0.2",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "quicklycv",
@@ -13,7 +13,7 @@
       "bundleIdentifier": "com.anonymous.quicklycv"
     },
     "android": {
-      "versionCode": 10,
+      "versionCode": 11,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
