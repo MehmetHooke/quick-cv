@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
 //new analytics import
+import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
 import { logEvent, setUserId } from "app/utils/analytics";
 import {
   Alert,
@@ -15,6 +16,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -30,6 +32,8 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const { request, promptAsync } = useGoogleSignIn();
 
   const handleLogin = async () => {
   if (!email || !password) {
@@ -142,6 +146,22 @@ export default function LoginScreen() {
                 resizeMode="contain"
               />
             </Pressable>
+
+              <TouchableOpacity
+              onPress={() => promptAsync()}
+              disabled={!request}
+              style={{
+                width: width * 0.4,
+                height: 40,
+                shadowColor: "#000",
+                shadowOpacity: 0.25,
+                shadowOffset: { width: 4, height: 4 },
+                shadowRadius: 4,
+              }}
+              className="bg-[#0C94B9] rounded-lg flex-row p-3 items-center justify-center mb-5"
+            >
+              <Text className="text-white text-[16px] font-medium mr-2">Google ile giriş yap</Text>
+            </TouchableOpacity>
 
             {/* 🧾 Kayıt linki */}
             <Text className="text-xl mt-6 text-[#1C1C1C] font-extrabold mb-5">
