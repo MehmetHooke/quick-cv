@@ -1,11 +1,15 @@
 import { auth } from "@/firebaseConfig";
 import { router } from "expo-router";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import React, { useState } from "react";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import React, { useEffect, useState } from "react";
 //new analytics import
 import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
 import { logEvent, setUserId } from "app/utils/analytics";
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Image,
@@ -33,31 +37,65 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // 🔹 İlk açılışta auth state kontrolü yaparken loader göstermek için
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
   const { request, promptAsync } = useGoogleSignIn();
 
+  // ✅ Uygulama açılır açılmaz: Eğer kullanıcı zaten giriş yapmışsa login ekranını atla
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Kullanıcı zaten giriş yapmış → direkt tab'lara gönder
+        router.replace("/(tabs)");
+      } else {
+        // Kullanıcı yok → login ekranını göster
+        setCheckingAuth(false);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
   const handleLogin = async () => {
-  if (!email || !password) {
-    Alert.alert("Uyarı", "Lütfen tüm alanları doldurun.");
-    return;
+    if (!email || !password) {
+      Alert.alert("Uyarı", "Lütfen tüm alanları doldurun.");
+      return;
+    }
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
+
+      await setUserId(user.uid);
+      await logEvent("login_success", {
+        method: "password",
+      });
+
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      await logEvent("login_error", {
+        code: error?.code ?? "unknown",
+      });
+      Alert.alert("Giriş Hatası", "Kullanıcı Adı Veya Şifre Hatalı !");
+    }
+  };
+
+  // ⏳ Auth durumu kontrol edilirken sade bir loader göster
+  if (checkingAuth) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "white",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator size="large" />
+      </View>
+    );
   }
-
-  try {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    const user = cred.user;
-
-    await setUserId(user.uid);
-    await logEvent("login_success", {
-      method: "password",
-    });
-
-    router.replace("/(tabs)");
-  } catch (error: any) {
-    await logEvent("login_error", {
-      code: error?.code ?? "unknown",
-    });
-    Alert.alert("Giriş Hatası", "Kullanıcı Adı Veya Şifre Hatalı !");
-  }
-};
 
   return (
     <ImageBackground
@@ -147,20 +185,23 @@ export default function LoginScreen() {
               />
             </Pressable>
 
-              <TouchableOpacity
+            {/* 🔴 Google ile giriş */}
+            <TouchableOpacity
               onPress={() => promptAsync()}
               disabled={!request}
               style={{
-                width: width * 0.4,
+                width: width * 0.45,
                 height: 40,
                 shadowColor: "#000",
                 shadowOpacity: 0.25,
                 shadowOffset: { width: 4, height: 4 },
                 shadowRadius: 4,
               }}
-              className="bg-[#0C94B9] rounded-lg flex-row p-3 items-center justify-center mb-5"
+              className="bg-[#0C94B9] rounded-lg flex-row p-2 items-center justify-center mb-3"
             >
-              <Text className="text-white text-[16px] font-medium mr-2">Google ile giriş yap</Text>
+              <Text className="text-white text-[16px] font-medium ">
+                Google ile giriş yap
+              </Text>
             </TouchableOpacity>
 
             {/* 🧾 Kayıt linki */}
@@ -172,14 +213,13 @@ export default function LoginScreen() {
               >
                 Kayıt olmak için tıkla.
               </Text>
-
-              
             </Text>
+
             <Text
-                onPress={() => router.push("/auth/forgotpassword")}
-                className="text-[#0C94B9] underline text-xl font-extrabold"
+              onPress={() => router.push("/auth/forgotpassword")}
+              className="text-[#0C94B9] underline text-xl font-extrabold"
             >
-                Şifremi Unuttum
+              Şifremi Unuttum
             </Text>
           </ScrollView>
         </KeyboardAvoidingView>

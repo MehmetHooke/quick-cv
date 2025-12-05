@@ -1,8 +1,14 @@
 // firebaseConfig.js
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  getReactNativePersistence,
+  initializeAuth,
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { Platform } from "react-native";
 
 // Firebase config - Expo environment variables
 const firebaseConfig = {
@@ -17,8 +23,20 @@ const firebaseConfig = {
 // Initialize Firebase App
 const app = initializeApp(firebaseConfig);
 
+// 🔐 Auth: Native'de kalıcı oturum (AsyncStorage), web'de normal
+
+/** @type {import('firebase/auth').Auth} */
+let auth;
+
+if (Platform.OS === "web") {
+  auth = getAuth(app);
+} else {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+}
+
 // Firebase Services
-const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 

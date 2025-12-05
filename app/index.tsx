@@ -1,4 +1,5 @@
 // app/index.tsx
+import { useTheme } from "@/context/ThemeContext";
 import { auth } from "@/firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
@@ -9,6 +10,8 @@ import { ActivityIndicator, Text, View } from "react-native";
 export default function Index() {
   const [checking, setChecking] = useState(true);
   const routedRef = useRef(false); // çifte yönlendirmeyi engeller
+
+  const { themeLoading } = useTheme();
 
   useEffect(() => {
     let unsub: (() => void) | undefined;
@@ -54,7 +57,7 @@ export default function Index() {
     };
   }, []);
 
-  if (checking) {
+  if (checking|| themeLoading) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
         <ActivityIndicator size="large" color="#0C94B9" />

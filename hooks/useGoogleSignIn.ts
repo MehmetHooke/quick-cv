@@ -1,4 +1,3 @@
-// hooks/useGoogleSignIn.ts
 import { auth } from "@/firebaseConfig";
 import { createUserDocIfNotExists } from "@/services/userService";
 import * as Google from "expo-auth-session/providers/google";
@@ -12,8 +11,8 @@ WebBrowser.maybeCompleteAuthSession();
 export function useGoogleSignIn() {
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
-    // webClientId istersen ekleyebilirsin
-    // webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
   });
 
   useEffect(() => {
@@ -29,10 +28,8 @@ export function useGoogleSignIn() {
       const credential = GoogleAuthProvider.credential(id_token);
       const result = await signInWithCredential(auth, credential);
 
-      // Firestore'da kullanıcı dokümanı oluştur
       await createUserDocIfNotExists(result.user);
 
-      // 🔥 Google login başarılı → direkt tab'lara yönlendir
       router.replace("/(tabs)");
     };
 

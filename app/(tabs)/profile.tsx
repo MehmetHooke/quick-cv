@@ -82,6 +82,31 @@ useFocusEffect(
 );
 
 
+  // 🔹 Tema değiştiğinde hem context'i hem Firestore'u güncelle
+  const handleThemeChange = async (value: "light" | "dark") => {
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert("Hata", "Kullanıcı oturumu bulunamadı.");
+      return;
+    }
+
+    try {
+      // Önce UI hemen güncellensin
+      setThemeName(value);
+
+      // Sonra Firestore'da users/{uid}.theme alanını güncelle
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        theme: value,
+      });
+
+      // console.log("Tema Firestore'a kaydedildi:", value);
+    } catch (error: any) {
+      console.error("Tema kaydedilirken hata:", error);
+      Alert.alert("Hata", "Tema kaydedilirken bir sorun oluştu.");
+    }
+  };
+
   // 📸 Profil fotoğrafı yükleme
   const handleImageUpload = async () => {
     try {
@@ -135,7 +160,7 @@ useFocusEffect(
     return (
       <Pressable
         key={value}
-        onPress={() => setThemeName(value)}
+        onPress={() => handleThemeChange(value)}   // ✅ Artık Firestore'a da yazıyor
         className="flex-row items-center justify-between py-2 px-3 rounded-xl"
         style={{ backgroundColor: theme.colors.inputBg }}
       >
@@ -270,7 +295,7 @@ return (
               source={
                 userData?.photoURL
                   ? { uri: userData.photoURL }
-                  : require("@/assets/images/react-logo.png")
+                  : require("@/assets/images/profilePlaceholder.png")
               }
               style={{
                 width: 96,

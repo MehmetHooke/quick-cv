@@ -1,7 +1,7 @@
 // app/_layout.tsx
 import "@/app/global.css";
 import { CVProvider } from "@/context/CVContext";
-import { PremiumProvider } from "@/context/PremiumContext"; // 🔹 EKLENDİ
+import { PremiumProvider } from "@/context/PremiumContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { Buffer } from "buffer";
 import { Stack } from "expo-router";

@@ -346,7 +346,7 @@ export default function PreviewScreen() {
                       style={{ width: `${progress}%` }}
                     />
                   </View>
-                  <Text className="mt-2 text-xs bg-cyan-600 text-white text-center">
+                  <Text className="mt-2 text-sm  text-white text-center">
                     %{progress} tamamlandı
                   </Text>
                 </>

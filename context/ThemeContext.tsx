@@ -1,8 +1,12 @@
 // context/ThemeContext.tsx
+import { auth, db } from "@/firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import React, {
   createContext,
   ReactNode,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -31,7 +35,6 @@ type ThemeConfig = {
 
 const lightTheme: ThemeConfig = {
   name: "light",
-  // Şu an Ayarlar sayfasında kullandığın background
   bgImage: require("@/assets/images/bg-light.png"),
   colors: {
     background: "#F3F4F6",
@@ -51,7 +54,6 @@ const lightTheme: ThemeConfig = {
 
 const darkTheme: ThemeConfig = {
   name: "dark",
-  // Senin hazırladığın koyu tema görseli
   bgImage: require("@/assets/images/bg-dark.png"),
   colors: {
     background: "#050608",
@@ -60,7 +62,7 @@ const darkTheme: ThemeConfig = {
     navigationbar: "#020617",
     mutedText: "#9CA3AF",
     historythemeLabel: "#FFFFFF",
-    primary: "#0C94B9", // istersen sonra #06B6D4 gibi daha canlı yaparız
+    primary: "#0C94B9",
     buttonBg: "#0C94B9",
     inputBg: "#020617",
     inputBorder: "#1F2937",
@@ -74,17 +76,49 @@ type ThemeContextValue = {
   theme: ThemeConfig;
   setThemeName: (name: ThemeName) => void;
   toggleTheme: () => void;
+  themeLoading: boolean;
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeName, setThemeName] = useState<ThemeName>("light");
+  const [themeLoading, setThemeLoading] = useState(true);
 
   const theme = useMemo(
     () => (themeName === "light" ? lightTheme : darkTheme),
     [themeName]
   );
+
+  useEffect(() => {
+    // Kullanıcı değiştiğinde Firestore'dan theme alanını çek
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      try {
+        if (user) {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          const data = snap.data() as { theme?: ThemeName } | undefined;
+          const remoteTheme = data?.theme;
+
+          if (remoteTheme === "light" || remoteTheme === "dark") {
+            setThemeName(remoteTheme);
+          } else {
+            setThemeName("light");
+          }
+        } else {
+          // Kullanıcı yoksa default light
+          setThemeName("light");
+        }
+      } catch (error) {
+        console.log("Tema bilgisi alınırken hata:", error);
+        // Hata olsa da app çökmemesi için default tema
+        setThemeName("light");
+      } finally {
+        setThemeLoading(false);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
 
   const value: ThemeContextValue = useMemo(
     () => ({
@@ -93,8 +127,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setThemeName,
       toggleTheme: () =>
         setThemeName((prev) => (prev === "light" ? "dark" : "light")),
+      themeLoading,
     }),
-    [themeName, theme]
+    [themeName, theme, themeLoading]
   );
 
   return (
