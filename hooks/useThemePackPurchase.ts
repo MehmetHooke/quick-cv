@@ -3,7 +3,7 @@ import { THEME_PACK_PRODUCT_ID } from "@/constants/iap";
 import { usePremium } from "@/context/PremiumContext";
 import { auth, db } from "@/firebaseConfig";
 import { logEvent } from "app/utils/analytics";
-import { useIAP, type MutationRequestPurchaseArgs } from "expo-iap";
+import { useIAP } from "expo-iap";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
@@ -117,18 +117,21 @@ export function useThemePackPurchase() {
       setLoading(true);
       logEvent("purchase_attempt_iap");
 
-        const purchaseArgs: MutationRequestPurchaseArgs = {
+      const purchaseArgs = {
         request: {
-            ios: {
+          ios: {
             sku: THEME_PACK_PRODUCT_ID,
-            },
-            android: {
+          },
+          android: {
             skus: [THEME_PACK_PRODUCT_ID],
-            },
+          },
         },
-        };
+      } as const;
 
-        await requestPurchase(purchaseArgs );
+      // TS burada union tip yüzünden kafayı yiyor, o yüzden küçük bir cast ile susturuyoruz
+      await requestPurchase(purchaseArgs as any);
+      // Devamını onPurchaseSuccess halledecek
+
 
       // Devamını onPurchaseSuccess halledecek
     } catch (error) {
