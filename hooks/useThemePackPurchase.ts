@@ -4,6 +4,7 @@ import { usePremium } from "@/context/PremiumContext";
 import { auth, db } from "@/firebaseConfig";
 import { logEvent } from "app/utils/analytics";
 import { useIAP } from "expo-iap";
+import { router } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
@@ -58,7 +59,7 @@ export function useThemePackPurchase() {
           purchase,
           isConsumable: false, // tek seferlik ürün
         });
-
+        router.replace("/(tabs)")
         Alert.alert(
           "Başarılı 🎉",
           "Tema Paketin ve PDF limitin başarıyla aktifleştirildi."
