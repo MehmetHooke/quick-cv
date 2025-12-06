@@ -192,23 +192,36 @@ export default function HomeScreen() {
   router.push("/newcv/personal-info");
   };
 
-  // 🔹 Modal içindeki "Bu Temayı Kullan"
-  const handleUseThemeFromModal = () => {
+  //  Modal içindeki "Bu Temayı Kullan"
+const handleUseThemeFromModal = () => {
   if (!selected) return;
 
-  // Premium kontrolü
-  if (!isPremium && isPremiumTemplate(selected.id)) {
-    // Önce modalı kapat, sonra paywall'a git
-    setSelected(null);
-    router.push("/paywall");
+  const chosen = selected; // referansı kaybetmeyelim
+
+  // 1) Premium kontrolü
+  if (!isPremium && isPremiumTemplate(chosen.id)) {
+    setSelected(null); // önce modalı kapat
+
+    // Küçük bir gecikmeyle paywall'a git
+    setTimeout(() => {
+      router.push("/paywall");
+    }, 50);
+
     return;
   }
 
-  // Normal akış
-  startNewCVWithTheme(selected.id);
-  pendingNavRef.current = () => router.push("/newcv/personal-info");
+  // 2) Normal akış: CV’yi sıfırla + tema ata
+  startNewCVWithTheme(chosen.id);
+
+  // Modalı kapat
   setSelected(null);
-  };
+
+  // 3) Küçük gecikmeyle kişisel bilgi adımına git
+  setTimeout(() => {
+    router.push("/newcv/personal-info");
+  }, 50);
+};
+
 
   // ✋ Pan jesti
   const pan = Gesture.Pan()
@@ -332,12 +345,6 @@ export default function HomeScreen() {
           transparent
           onShow={() => {
             resetTransform();
-          }}
-          onDismiss={() => {
-            if (pendingNavRef.current) {
-              pendingNavRef.current();
-              pendingNavRef.current = null;
-            }
           }}
         >
           <GestureHandlerRootView style={{ flex: 1 }}>

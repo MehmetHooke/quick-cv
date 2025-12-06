@@ -2,7 +2,7 @@
   "expo": {
     "name": "QuickCV",
     "slug": "QuicklyCV",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "quickcv",
@@ -13,7 +13,7 @@
       "bundleIdentifier": "com.anonymous.quicklycv"
     },
     "android": {
-      "versionCode": 18,
+      "versionCode": 19,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -43,7 +43,16 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-iap",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.1.20"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

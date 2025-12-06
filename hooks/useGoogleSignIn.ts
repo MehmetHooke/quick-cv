@@ -10,9 +10,10 @@ WebBrowser.maybeCompleteAuthSession();
 
 export function useGoogleSignIn() {
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    // 🔥 Sadece Web client ID kullan
+    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!,
+    // androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
+    // iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!,
   });
 
   useEffect(() => {

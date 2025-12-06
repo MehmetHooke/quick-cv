@@ -2,7 +2,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { logEvent } from "app/utils/analytics";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   ImageBackground,
@@ -12,65 +12,19 @@ import {
   View,
 } from "react-native";
 
-import { usePremium } from "@/context/PremiumContext";
 import { useTheme } from "@/context/ThemeContext";
-import { auth, db } from "@/firebaseConfig";
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-
-// 🔹 Ay anahtarı (PremiumContext ile tutarlı)
-const getCurrentMonthKey = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
-};
+import { useThemePackPurchase } from "@/hooks/useThemePackPurchase";
 
 export default function PaywallScreen() {
   const router = useRouter();
   const { theme } = useTheme();
-  const { refresh } = usePremium();
 
-  const [loading, setLoading] = useState(false);
+  // 🔹 IAP hook
+  const { loading, connected, buyThemePack } = useThemePackPurchase();
 
   useEffect(() => {
     logEvent("paywall_opened");
   }, []);
-
-  const handleFakePurchase = async () => {
-    logEvent("purchase_attempt");
-    const user = auth.currentUser;
-    if (!user) {
-      alert("Premium satın almak için önce giriş yapmalısın.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const ref = doc(db, "users", user.uid, "entitlements", "main");
-      const monthKey = getCurrentMonthKey();
-
-      await updateDoc(ref, {
-        themePack: true,
-        purchasedAt: serverTimestamp(),
-        pdfLimit: 50,
-        pdfUsageMonthKey: monthKey,
-        pdfUsageCount: 0,
-        updatedAt: serverTimestamp(),
-      });
-
-      await refresh();
-      alert("Tema Paketin ve genişletilmiş PDF hakkın başarıyla aktifleştirildi 🎉");
-      logEvent("purchase_success");
-      router.back();
-    } catch (err) {
-      console.error("Fake purchase error:", err);
-      alert("Satın alma işlemi sırasında bir hata oluştu. Lütfen tekrar dene.");
-      logEvent("purchase_failed", { reason: err });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <ImageBackground
@@ -178,64 +132,61 @@ export default function PaywallScreen() {
               başvurularında öne çıkan, profesyonel tasarımlarla fark yarat.
             </Text>
 
-            {/* Fiyat bölümü */}
-{/* Fiyat Bölümü */}
-<View style={{ marginTop: 20, alignItems: "center" }}>
+            {/* Fiyat Bölümü */}
+            <View style={{ marginTop: 20, alignItems: "center" }}>
+              {/* Üst açıklama */}
+              <Text
+                style={{
+                  color: "#9ca3af",
+                  fontSize: 13,
+                  marginBottom: 6,
+                }}
+              >
+                Lansmana Özel Fiyat
+              </Text>
 
-  {/* Üst açıklama */}
-  <Text
-    style={{
-      color: "#9ca3af",
-      fontSize: 13,
-      marginBottom: 6,
-    }}
-  >
-    Lansmana Özel Fiyat
-  </Text>
+              {/* Eski fiyat + yeni fiyat satırı */}
+              <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
+                {/* Eski fiyat */}
+                <Text
+                  style={{
+                    color: "#ef4444",
+                    fontSize: 22,
+                    fontWeight: "700",
+                    textDecorationLine: "line-through",
+                    marginRight: 10,
+                    opacity: 0.8,
+                  }}
+                >
+                  199₺
+                </Text>
 
-  {/* Eski fiyat + yeni fiyat satırı */}
-  <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
-    {/* Eski fiyat */}
-    <Text
-      style={{
-        color: "#ef4444",
-        fontSize: 22,
-        fontWeight: "700",
-        textDecorationLine: "line-through",
-        marginRight: 10,
-        opacity: 0.8,
-      }}
-    >
-      199₺
-    </Text>
+                {/* Yeni fiyat */}
+                <Text
+                  style={{
+                    color: "#ffffff",
+                    fontSize: 36,
+                    fontWeight: "800",
+                  }}
+                >
+                  139₺
+                </Text>
+              </View>
 
-    {/* Yeni fiyat */}
-    <Text
-      style={{
-        color: "#ffffff",
-        fontSize: 36,
-        fontWeight: "800",
-      }}
-    >
-      139₺
-    </Text>
-  </View>
-
-  {/* Alt açıklama */}
-  <Text
-    style={{
-      color: "#9ca3af",
-      marginTop: 4,
-      fontSize: 12,
-    }}
-  >
-    Ömür boyu erişim
-  </Text>
-</View>
-
+              {/* Alt açıklama */}
+              <Text
+                style={{
+                  color: "#9ca3af",
+                  marginTop: 4,
+                  fontSize: 12,
+                }}
+              >
+                Ömür boyu erişim
+              </Text>
+            </View>
 
             {/* Avantaj listesi */}
-            <View style={{ marginBottom: 18 }}>
+            <View style={{ marginBottom: 18, marginTop: 16 }}>
               <Text
                 style={{
                   color: "#e5e7eb",
@@ -329,28 +280,17 @@ export default function PaywallScreen() {
               </View>
             </View>
 
-            {/* Bilgilendirme notu (fake purchase için istersen debug dönemi notu ekleyebilirsin) */}
-            <Text
-              style={{
-                color: "#6b7280",
-                fontSize: 11,
-                marginBottom: 16,
-              }}
-            >
-              Şu anki sürümde satın alma işlemi test amaçlıdır ve Google Play faturalandırma
-              entegrasyonu tamamlandığında gerçek ödeme akışı devreye alınacaktır.
-            </Text>
-
             {/* Satın alma butonu */}
             <TouchableOpacity
-              disabled={loading}
-              onPress={handleFakePurchase}
+              disabled={loading || !connected}
+              onPress={buyThemePack}
               style={{
                 borderRadius: 999,
                 paddingVertical: 14,
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: loading ? "#22c55eaa" : "#22c55e",
+                backgroundColor:
+                  loading || !connected ? "#22c55eaa" : "#22c55e",
                 flexDirection: "row",
                 marginBottom: 10,
               }}
