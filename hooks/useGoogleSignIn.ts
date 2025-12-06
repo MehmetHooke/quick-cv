@@ -10,47 +10,73 @@ import { useEffect } from "react";
 WebBrowser.maybeCompleteAuthSession();
 
 export function useGoogleSignIn() {
+  // Şimdilik sadece Web client ID ile gidiyoruz
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
+    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!,
   });
+
+  async function promptWithLog() {
+    await logAuthEvent("promptAsync_called", {
+      hasRequest: !!request,
+    });
+    return promptAsync();
+  }
 
   useEffect(() => {
     const handleSignIn = async () => {
-      // response geldiğinde ama success değilse logla
-      if (response && response.type !== "success") {
-        await logAuthEvent("warn", "google_response_not_success", {
-          type: response.type,
-          error: (response as any).error,
-          params: (response as any).params,
+      if (response) {
+        const r: any = response; // TS için gevşetiyoruz
+        await logAuthEvent("received_response", {
+          type: r.type,
+          params: r.params,
+          error: r.error,
+        });
+      }
+
+      if (!response) return;
+
+      if (response.type !== "success") {
+        const r: any = response;
+        await logAuthEvent("response_not_success", {
+          type: r.type,
+          error: r.error,
+          params: r.params,
         });
         return;
       }
 
-      if (response?.type !== "success") return;
+      const r: any = response;
+      const id_token: string | undefined = r.params?.id_token;
 
-      const { id_token } = response.params;
       if (!id_token) {
-        await logAuthEvent("error", "google_no_id_token", {
-          params: response.params,
+        await logAuthEvent("no_id_token_returned", {
+          params: r.params,
         });
         return;
       }
 
       try {
+        await logAuthEvent("creating_credential");
+
         const credential = GoogleAuthProvider.credential(id_token);
+
+        await logAuthEvent("signInWithCredential_started");
+
         const result = await signInWithCredential(auth, credential);
+
+        await logAuthEvent("firebase_login_success", {
+          uid: result.user.uid,
+          email: result.user.email,
+        });
 
         await createUserDocIfNotExists(result.user);
 
-        await logAuthEvent("info", "google_login_success", {
-          uid: result.user.uid,
-          providerId: result.user.providerData[0]?.providerId,
-        });
+        await logAuthEvent("redirecting_to_tabs");
 
         router.replace("/(tabs)");
       } catch (err: any) {
         console.log("Google login error:", err);
-        await logAuthEvent("error", "google_signInWithCredential_error", {
+        await logAuthEvent("signInWithCredential_error", {
           message: err?.message,
           code: err?.code,
         });
@@ -58,8 +84,7 @@ export function useGoogleSignIn() {
     };
 
     handleSignIn().catch(async (err) => {
-      console.log("Google login outer error:", err);
-      await logAuthEvent("error", "google_handleSignIn_outer_catch", {
+      await logAuthEvent("outer_catch", {
         message: (err as any)?.message,
       });
     });
@@ -67,6 +92,6 @@ export function useGoogleSignIn() {
 
   return {
     request,
-    promptAsync,
+    promptAsync: promptWithLog,
   };
 }
