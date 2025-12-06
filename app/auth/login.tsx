@@ -113,8 +113,8 @@ export default function LoginScreen() {
             contentContainerStyle={{
               flexGrow: 1,
               alignItems: "center",
-              paddingTop: 80,
-              paddingBottom: 40,
+              paddingTop: 50,
+              paddingBottom: 50,
             }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -133,7 +133,7 @@ export default function LoginScreen() {
             />
 
             {/* 📧 E-posta */}
-            <View className="mt-5 mb-5 w-[80%]">
+            <View className=" mb-5 w-[80%]">
               <Text className="text-[#1E1E1E] font-extrabold text-[16px] mb-1">
                 E-posta
               </Text>

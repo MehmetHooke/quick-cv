@@ -101,6 +101,8 @@ const templates = [
 ];
 
 export default function HomeScreen() {
+
+  console.log("Giriş gerçekleşti")
   const [selected, setSelected] = useState<(typeof templates)[0] | null>(null);
   const router = useRouter();
   const { updateCV } = useCV();
