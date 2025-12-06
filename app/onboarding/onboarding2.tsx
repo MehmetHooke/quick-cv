@@ -1,20 +1,19 @@
+import { router } from "expo-router";
 import React from "react";
 import {
-  View,
-  Text,
+  Dimensions,
   Image,
   ImageBackground,
   Pressable,
-  Dimensions,
+  Text
 } from "react-native";
-import { router } from "expo-router";
 import * as Animatable from "react-native-animatable";
 
 const { width, height } = Dimensions.get("window");
 
 export default function Onboarding2() {
-  const fontSizeTitle = width * 0.05;
-  const buttonWidth = width * 0.32;
+  const fontSizeTitle = width * 0.04;
+  const buttonWidth = width * 0.42;
   const buttonHeight = height * 0.047;
 
   return (

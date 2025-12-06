@@ -15,8 +15,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const { width, height } = Dimensions.get("window");
 
 export default function Onboarding3() {
-  const fontSizeTitle = width * 0.06;
-  const iconSize = width * 0.07;
+  const fontSizeTitle = width * 0.04;
+  const iconSize = width * 0.05;
   const buttonWidth = width * 0.42;
   const buttonHeight = height * 0.047;
 
