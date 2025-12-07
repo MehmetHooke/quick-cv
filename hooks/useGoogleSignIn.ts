@@ -4,16 +4,16 @@ import { createUserDocIfNotExists } from "@/services/userService";
 import { makeRedirectUri } from "expo-auth-session";
 import * as Google from "expo-auth-session/providers/google";
 import { router } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
+
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { useEffect } from "react";
 
-WebBrowser.maybeCompleteAuthSession();
+
 
 export function useGoogleSignIn() {
   // 🔍 Debug: Expo'nun bu ortam için hesapladığı redirect
   const debugRedirectUri = makeRedirectUri({
-    scheme: "quicklycv",
+    scheme: "com.anonymous.quicklycv",
   });
 
   // Uygulama açılır açılmaz bir kez loglasın

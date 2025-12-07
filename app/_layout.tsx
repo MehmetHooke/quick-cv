@@ -6,10 +6,13 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { Buffer } from "buffer";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as WebBrowser from "expo-web-browser";
 import React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+
 (global as any).Buffer = Buffer;
+WebBrowser.maybeCompleteAuthSession();
 
 export default function RootLayout() {
   return (
