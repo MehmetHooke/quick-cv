@@ -10,22 +10,25 @@ import { useEffect } from "react";
 WebBrowser.maybeCompleteAuthSession();
 
 export function useGoogleSignIn() {
-  // Şimdilik sadece Web client ID ile gidiyoruz
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!,
+  // ✅ Hem Android hem Expo (web) client id veriyoruz
+  const [request, response, promptAsyncBase] = Google.useIdTokenAuthRequest({
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!,
+    // istersen scopes da ekleyebilirsin:
+    // scopes: ["profile", "email"],
   });
 
   async function promptWithLog() {
     await logAuthEvent("promptAsync_called", {
       hasRequest: !!request,
     });
-    return promptAsync();
+    return promptAsyncBase();
   }
 
   useEffect(() => {
     const handleSignIn = async () => {
       if (response) {
-        const r: any = response; // TS için gevşetiyoruz
+        const r: any = response;
         await logAuthEvent("received_response", {
           type: r.type,
           params: r.params,
@@ -61,7 +64,6 @@ export function useGoogleSignIn() {
         const credential = GoogleAuthProvider.credential(id_token);
 
         await logAuthEvent("signInWithCredential_started");
-
         const result = await signInWithCredential(auth, credential);
 
         await logAuthEvent("firebase_login_success", {
@@ -72,7 +74,6 @@ export function useGoogleSignIn() {
         await createUserDocIfNotExists(result.user);
 
         await logAuthEvent("redirecting_to_tabs");
-
         router.replace("/(tabs)");
       } catch (err: any) {
         console.log("Google login error:", err);

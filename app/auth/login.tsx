@@ -187,7 +187,10 @@ export default function LoginScreen() {
 
             {/* 🔴 Google ile giriş */}
             <TouchableOpacity
-              onPress={() => promptAsync()}
+              onPress={() => {
+                if (!request) return;
+                promptAsync();
+              }}
               disabled={!request}
               style={{
                 width: width * 0.45,
