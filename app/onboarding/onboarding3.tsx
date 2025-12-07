@@ -35,7 +35,7 @@ export default function Onboarding3() {
         {/* Geri butonu */}
         <Animatable.View animation="fadeInDown" delay={150}>
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => router.push("/onboarding/onboarding2")}
             style={{
               marginLeft: 24,
               marginTop: 12,

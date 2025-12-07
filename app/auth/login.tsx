@@ -40,7 +40,7 @@ export default function LoginScreen() {
   // 🔹 İlk açılışta auth state kontrolü yaparken loader göstermek için
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  const { request, promptAsync } = useGoogleSignIn();
+const { request, promptAsync, isProcessing } = useGoogleSignIn();
 
   // ✅ Uygulama açılır açılmaz: Eğer kullanıcı zaten giriş yapmışsa login ekranını atla
   useEffect(() => {
@@ -188,10 +188,10 @@ export default function LoginScreen() {
             {/* 🔴 Google ile giriş */}
             <TouchableOpacity
               onPress={() => {
-                if (!request) return;
+                if (!request || isProcessing) return;
                 promptAsync();
               }}
-              disabled={!request}
+              disabled={!request || isProcessing}
               style={{
                 width: width * 0.45,
                 height: 40,
@@ -202,9 +202,13 @@ export default function LoginScreen() {
               }}
               className="bg-[#0C94B9] rounded-lg flex-row p-2 items-center justify-center mb-3"
             >
-              <Text className="text-white text-[16px] font-medium ">
-                Google ile giriş yap
-              </Text>
+              {isProcessing ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-white text-[16px] font-medium ">
+                  Google ile giriş yap
+                </Text>
+              )}
             </TouchableOpacity>
 
             {/* 🧾 Kayıt linki */}

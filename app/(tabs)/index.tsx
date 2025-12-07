@@ -7,6 +7,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { auth, db } from "@/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -285,22 +286,61 @@ const handleUseThemeFromModal = () => {
       onUse={handleUseThemeDirect}
     />
   );
-  const [firstName, setFirstName] = useState("");
-    // Kullanıcı bilgisini Firestore'dan çek
-  useEffect(() => {
-    const fetchUser = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
 
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        setFirstName(data.firstName || "");
+
+const [firstName, setFirstName] = useState("");
+
+// Kullanıcıyı auth state üzerinden bekle + sonra Firestore'dan bir kere çek
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    console.log("HomeScreen onAuthStateChanged:", user?.uid, user?.email);
+
+    if (!user) {
+      setFirstName("");
+      return;
+    }
+
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
+      console.log("HomeScreen getDoc exists:", snap.exists());
+
+      if (!snap.exists()) {
+        // Doküman yoksa fallback üret
+        const fallback =
+          user.displayName?.split(" ")[0] ||
+          user.email?.split("@")[0] ||
+          "";
+        console.log("No user doc, using fallback:", fallback);
+        setFirstName(fallback);
+        return;
       }
-    };
 
-    fetchUser();
-  }, []);
+      const data: any = snap.data();
+      console.log("HomeScreen user doc data:", data);
+
+      const fromDoc = data.firstName as string | undefined;
+      const resolved =
+        fromDoc ||
+        user.displayName?.split(" ")[0] ||
+        user.email?.split("@")[0] ||
+        "";
+
+      console.log("Resolved firstName:", resolved);
+      setFirstName(resolved);
+    } catch (err) {
+      console.log("HomeScreen getDoc error:", err);
+      const fallback =
+        user.displayName?.split(" ")[0] ||
+        user.email?.split("@")[0] ||
+        "";
+      setFirstName(fallback);
+    }
+  });
+
+  return () => unsubscribe();
+}, []);
+
 
   return (
     <ImageBackground

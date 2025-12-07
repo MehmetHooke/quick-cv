@@ -26,7 +26,7 @@ export default function Onboarding2() {
         {/* Geri butonu */}
         <Animatable.View animation="fadeInDown" delay={200}>
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => router.push("/onboarding/onboarding1")}
             className="absolute left-6 top-10 bg-[#ffffff55] rounded-full w-[35px] h-[35px] items-center justify-center"
           >
             <Image
