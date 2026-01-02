@@ -2,7 +2,7 @@
 
 QuickCV, kullanıcıların profesyonel CV'lerini saniyeler içinde oluşturmasını sağlayan modern bir **React Native (Expo Router)** tabanlı mobil uygulamadır.  
 Uygulama, kullanıcı dostu adım adım CV sihirbazı, özelleştirilebilir temalar, gerçek zamanlı önizleme ve **Google Cloud üzerinde çalışan HTML-to-PDF render servisi** ile profesyonel kalitede çıktılar sunar.
-
+<a href="https://www.linkedin.com/posts/mehmethoke_reactnative-expo-firebase-activity-7397329037620297729-EFii?utm_source=share&utm_medium=member_desktop&rcm=ACoAAC03NGcBX37Y24g-uzxAxfiCaYypEVFftjA" target="_blank">Link</a>
 LinkedIn Tanıtım videosu = https://www.linkedin.com/posts/mehmethoke_reactnative-expo-firebase-activity-7397329037620297729-EFii?utm_source=share&utm_medium=member_desktop&rcm=ACoAAC03NGcBX37Y24g-uzxAxfiCaYypEVFftjA
 
 ---
