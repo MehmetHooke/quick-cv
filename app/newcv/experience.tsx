@@ -240,11 +240,11 @@ export default function ExperienceScreen() {
                   className="w-5 h-5 rounded-md border mr-3 mt-[2px] items-center justify-center"
                   style={{
                     borderColor: skipExperience ? theme.colors.primary : theme.colors.mutedText,
-                    backgroundColor: skipExperience ? theme.colors.primary : "transparent",
+                    backgroundColor: skipExperience ? theme.colors.buttonBg : "transparent",
                     opacity: hasAnyDraftInput ? 0.5 : 1,
                   }}
                 >
-                  {skipExperience ? <View className="w-2.5 h-2.5 rounded-sm bg-white" /> : null}
+                  {skipExperience ? <View className="w-2.5 h-2.5 rounded-sm " /> : null}
                 </View>
 
                 <Text

@@ -41,6 +41,17 @@ export default function SkillsScreen() {
 
   const [loading, setLoading] = useState(false);
   const placeholderColor = "#9CA3AF";
+  const [skipSkills, setSkipSkills] = useState(false);
+
+  const hasAnyDraftInput =
+    newSkill.name.trim().length > 0 ||
+    newSkill.level.trim().length > 0;
+
+  // Opsiyonel adım gibi davranacak:
+  // - Draft varsa devam yok (kullanıcı yarım bıraktı)
+  // - Draft yoksa: ya en az 1 skill var, ya da "boş bırakmak istiyorum" seçili
+  const canProceed = !hasAnyDraftInput && (skills.length > 0 || skipSkills);
+
 
   // ➕ Yeni yetenek ekle
   const addSkill = () => {
@@ -58,6 +69,7 @@ export default function SkillsScreen() {
     };
 
     setSkills((prev) => [...prev, cleaned]);
+    setSkipSkills(false);
 
     setNewSkill({
       name: "",
@@ -108,112 +120,157 @@ export default function SkillsScreen() {
   };
 
   return (
-   <ImageBackground
-    source={theme.bgImage}
-    style={{ flex: 1 }}
-    resizeMode="cover"
+    <ImageBackground
+      source={theme.bgImage}
+      style={{ flex: 1 }}
+      resizeMode="cover"
     >
       <BackButton />
-    <SafeAreaView className="flex-1 ">
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
-      >
-        <ScrollView
-          className="flex-1 px-5 py-8 mt-5"
-          contentContainerStyle={{ paddingBottom: 40 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+      <SafeAreaView className="flex-1 ">
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
         >
-
-
-
-
-      <View className="items-center mb-6">
-        <Text className="text-2xl font-bold  mb-1" style={{ color: theme.colors.primary }}>
-          Yetenekler
-        </Text>
-        <View className="h-1 w-1/3  rounded-full" style={{ backgroundColor: theme.colors.primary }} />
-      </View>
-
-      <Text className="text-base mb-4" style={{ color: theme.colors.text }}>
-        Teknik ve kişisel yeteneklerini buraya ekleyebilirsin. Örn: React
-        Native, Flutter, İletişim, Takım Çalışması...
-      </Text>
-
-      {/* Yeni yetenek ekleme alanı */}
-      <View className="mb-6">
-        <Text className="text-base mb-2" style={{ color: theme.colors.text }}>
-          Yeni yetenek eklemek istiyorum
-        </Text>
-
-        <TextInput
-          placeholder="Yetenek Adı (Örn: React Native, Python)"
-          placeholderTextColor={placeholderColor}
-          value={newSkill.name || ""}
-          onChangeText={(t) => setNewSkill({ ...newSkill, name: t })}
-          style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="   rounded-xl p-3 mb-3 text-sm"
-        />
-
-        <TextInput
-          placeholder="Seviye (Örn: Başlangıç, Orta, İleri)"
-          placeholderTextColor={placeholderColor}
-          value={newSkill.level || ""}
-          onChangeText={(t) => setNewSkill({ ...newSkill, level: t })}
-          style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
-          className="  rounded-xl p-3 mb-4 text-sm"
-        />
-
-        <TouchableOpacity
-          onPress={addSkill}
-          className="self-center  px-12 py-3 rounded-xl bg-cyan-600"
-        >
-          <Text className="text-white text-sm font-semibold">
-            Yeni Yetenek Ekle
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Mevcut yeteneklerin listesi – aynı kart + Sil tasarımı */}
-      {skills.map((item, index) => (
-        <View
-          key={`${item.name}-${index}`}
-          style={{ backgroundColor: theme.colors.inputBg }}
-          className="flex-row items-center justify-between mb-2  rounded-xl px-3 py-2"
-        >
-          <View className="flex-1 mr-2">
-            <Text className="text-sm font-semibold" style={{ color: theme.colors.text }}>
-              {item.name}
-            </Text>
-            <Text className="text-xs" style={{ color: theme.colors.mutedText }}>{item.level}</Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => removeSkill(index)}
-            className="px-3 py-1 rounded-full "
-            style={{ backgroundColor: "#FEE2E2" }}
+          <ScrollView
+            className="flex-1 px-5 py-8 mt-5"
+            contentContainerStyle={{ paddingBottom: 40 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Text className="text-xs font-semibold text-red-600">Sil</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
 
-      {/* Devam Et Butonu */}
-      <TouchableOpacity
-        disabled={loading}
-        onPress={handleNext}
-        className={`py-4 rounded-2xl mt-6 ${
-          loading ? "bg-cyan-400" : "bg-cyan-600"
-        }`}
-      >
-        <Text className="text-center text-white font-semibold text-lg">
-          {loading ? "Kaydediliyor..." : "Devam Et →"}
-        </Text>
-      </TouchableOpacity>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
+
+
+
+            <View className="items-center mb-6">
+              <Text className="text-2xl font-bold  mb-1" style={{ color: theme.colors.primary }}>
+                Yetenekler
+              </Text>
+              <View className="h-1 w-1/3  rounded-full" style={{ backgroundColor: theme.colors.primary }} />
+            </View>
+
+            <Text className="text-base mb-4" style={{ color: theme.colors.text }}>
+              Teknik ve kişisel yeteneklerini buraya ekleyebilirsin. Örn: Yazılım dilleri,Bilgisayar Programları, İletişim, Takım Çalışması...
+            </Text>
+
+            {/* Yeni yetenek ekleme alanı */}
+            <View className="mb-6">
+
+
+              <TextInput
+                placeholder="Yetenek Adı (Örn: Takım Çalışması, Python)"
+                placeholderTextColor={placeholderColor}
+                value={newSkill.name || ""}
+                onChangeText={(t) => setNewSkill({ ...newSkill, name: t })}
+                style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
+                className="   rounded-xl p-3 mb-3 text-sm"
+              />
+
+              <TextInput
+                placeholder="Seviye (Örn: Başlangıç, Orta, İleri)"
+                placeholderTextColor={placeholderColor}
+                value={newSkill.level || ""}
+                onChangeText={(t) => setNewSkill({ ...newSkill, level: t })}
+                style={{ backgroundColor: theme.colors.inputBg, color: theme.colors.text }}
+                className="  rounded-xl p-3 mb-4 text-sm"
+              />
+
+              <TouchableOpacity
+                onPress={addSkill}
+                className="py-4 rounded-2xl mt-2"
+                style={{ backgroundColor: theme.colors.buttonBg }}
+              >
+                <Text className="text-center text-white font-semibold text-lg">
+                  Yeni Yetenek Ekle
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {/* ✅ Hiç yetenek yoksa: bilinçli atlama checkbox */}
+            {skills.length === 0 && (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => {
+                  if (hasAnyDraftInput) {
+                    Alert.alert(
+                      "Bilgi var",
+                      "Boş bırakmak için önce alanları temizleyin veya 'Yeni Yetenek Ekle' ile kaydı ekleyin."
+                    );
+                    return;
+                  }
+                  setSkipSkills((p) => !p);
+                }}
+                className="flex-row items-start mt-2 mb-2"
+              >
+                <View
+                  className="w-5 h-5 rounded-md border mr-3 mt-[2px] items-center justify-center"
+                  style={{
+                    borderColor: skipSkills ? theme.colors.primary : theme.colors.inputBg,
+                    backgroundColor: skipSkills ? theme.colors.buttonBg : "transparent",
+                  }}
+                >
+                  {skipSkills ? <View className="w-2.5 h-2.5 rounded-sm " /> : null}
+                </View>
+
+                <Text className="flex-1 text-sm leading-5" style={{ color: theme.colors.text }}>
+                  Yetenek bölümünü boş bırakmak istiyorum
+                </Text>
+              </TouchableOpacity>
+            )}
+
+
+            {/* Mevcut yeteneklerin listesi – aynı kart + Sil tasarımı */}
+            {skills.map((item, index) => (
+              <View
+                key={`${item.name}-${index}`}
+                style={{ backgroundColor: theme.colors.inputBg }}
+                className="flex-row items-center justify-between mb-2  rounded-xl px-3 py-2"
+              >
+                <View className="flex-1 mr-2">
+                  <Text className="text-sm font-semibold" style={{ color: theme.colors.text }}>
+                    {item.name}
+                  </Text>
+                  <Text className="text-xs" style={{ color: theme.colors.mutedText }}>{item.level}</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => removeSkill(index)}
+                  className="px-3 py-1 rounded-full "
+                  style={{ backgroundColor: "#FEE2E2" }}
+                >
+                  <Text className="text-xs font-semibold text-red-600">Sil</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+
+
+            {/* Devam Et Butonu */}
+            <TouchableOpacity
+              disabled={loading || !canProceed}
+              onPress={handleNext}
+              className="py-4 rounded-2xl mt-6"
+              style={{
+                backgroundColor: theme.colors.buttonBg,
+                opacity: loading || !canProceed ? 0.45 : 1,
+              }}
+            >
+              <Text className="text-center text-white font-semibold text-lg">
+                {loading ? "Kaydediliyor..." : "Devam Et →"}
+              </Text>
+            </TouchableOpacity>
+
+
+            {hasAnyDraftInput && (
+              <Text
+                className="text-center text-xs mt-2 mb-2"
+                style={{ color: theme.colors.mutedText }}
+              >
+                Devam etmek için “Yeni Yetenek Ekle” butonuna basarak kaydı ekleyin veya
+                alanları temizleyin.
+              </Text>
+            )}
+
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </ImageBackground>
   );
 }

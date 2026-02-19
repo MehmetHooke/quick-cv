@@ -209,7 +209,6 @@ export default function LanguagesScreen() {
               <TouchableOpacity
                 onPress={handleAddLanguage}
                 className="py-4 rounded-2xl mt-2"
-                style={{ backgroundColor: theme.colors.buttonBg }}
               >
                 <Text className="text-center text-white font-semibold text-lg">
                   Dil Ekle

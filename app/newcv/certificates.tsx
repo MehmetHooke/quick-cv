@@ -212,18 +212,18 @@ export default function CertificatesScreen() {
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => setSkipCertificates((p) => !p)}
-                className="flex-row items-start mt-2 mb-2"
+                className="flex-row items-start mt-2 mb-4"
                 disabled={hasAnyDraftInput} // draft varken checkbox kilit
               >
                 <View
                   className="w-5 h-5 rounded-md border mr-3 mt-[2px] items-center justify-center"
                   style={{
                     borderColor: skipCertificates ? theme.colors.primary : theme.colors.mutedText,
-                    backgroundColor: skipCertificates ? theme.colors.primary : "transparent",
+                    backgroundColor: skipCertificates ? theme.colors.buttonBg : "transparent",
                     opacity: hasAnyDraftInput ? 0.5 : 1,
                   }}
                 >
-                  {skipCertificates ? <View className="w-2.5 h-2.5 rounded-sm bg-white" /> : null}
+                  {skipCertificates ? <View className="w-2.5 h-2.5 rounded-sm " /> : null}
                 </View>
 
                 <Text
