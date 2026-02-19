@@ -1,5 +1,4 @@
 import BackButton from "@/components/common/BackButton";
-import { ContinueButton } from "@/components/form/ContinueButton";
 import { useCV } from "@/context/CVContext";
 import { useTheme } from "@/context/ThemeContext";
 import { auth, db } from "@/firebaseConfig";
@@ -268,12 +267,19 @@ export default function CertificatesScreen() {
 
 
             {/* ✅ Devam Et Butonu (zorunlu olmayan) */}
-            <ContinueButton
+            <TouchableOpacity
               onPress={handleNext}
-              loading={loading}
-              isOptional={false}
-              isValid={canProceed}
-            />
+              disabled={!canProceed}
+              className="py-4 rounded-2xl "
+              style={{
+                backgroundColor: theme.colors.buttonBg,
+                opacity: canProceed ? 1 : 0.45,
+              }}
+            >
+              <Text className="text-center text-white font-semibold text-lg">
+                Devam Et →
+              </Text>
+            </TouchableOpacity>
 
 
             {hasAnyDraftInput && (

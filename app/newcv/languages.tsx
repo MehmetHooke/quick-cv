@@ -30,11 +30,16 @@ export default function LanguagesScreen() {
   const [level, setLevel] = useState("");
 
   const placeholderColor = "#9CA3AF";
+  const hasAnyDraftInput =
+    name.trim().length > 0 ||
+    level.trim().length > 0;
 
   //new for skipping without adding language
   const [skipLanguages, setSkipLanguages] = useState(false);
   // Devam butonu aktif mi?
-  const canProceed = languages.length > 0 || skipLanguages;
+  const canProceed =
+    !hasAnyDraftInput && (languages.length > 0 || skipLanguages);
+
 
 
   const handleAddLanguage = () => {
@@ -134,7 +139,7 @@ export default function LanguagesScreen() {
             </Text>
             <Text className="text-base mb-4"
               style={{ color: theme.colors.text }}>
-                Seviye kısmı için isterseniz A1,B2 seviye şekli ile isterseniz yazı ile belirtebilirsiniz.</Text>
+              Seviye kısmı için isterseniz A1,B2 seviye şekli ile isterseniz yazı ile belirtebilirsiniz.</Text>
 
             {/* Mevcut diller listesi */}
             {languages.map((lang, index) => (
@@ -209,6 +214,7 @@ export default function LanguagesScreen() {
               <TouchableOpacity
                 onPress={handleAddLanguage}
                 className="py-4 rounded-2xl mt-2"
+                style={{ backgroundColor: theme.colors.buttonBg }}
               >
                 <Text className="text-center text-white font-semibold text-lg">
                   Dil Ekle
@@ -221,7 +227,17 @@ export default function LanguagesScreen() {
             {languages.length === 0 && (
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => setSkipLanguages((p) => !p)}
+                onPress={() => {
+                  if (hasAnyDraftInput) {
+                    Alert.alert(
+                      "Bilgi var",
+                      "Boş bırakmak için önce alanları temizleyin veya 'Dil Ekle' butonuna basarak kaydı ekleyin."
+                    );
+                    return;
+                  }
+                  setSkipLanguages((p) => !p);
+                }}
+
                 className="flex-row items-start mb-6"
               >
                 <View
@@ -231,11 +247,12 @@ export default function LanguagesScreen() {
                   ].join(" ")}
                   style={{
                     borderColor: skipLanguages ? theme.colors.primary : theme.colors.mutedText,
-                    backgroundColor: skipLanguages ? theme.colors.primary : "transparent",
+                    backgroundColor: skipLanguages ? theme.colors.buttonBg : "transparent",
                   }}
                 >
                   {skipLanguages ? (
-                    <View className="w-2.5 h-2.5 rounded-sm bg-white" />
+                    <View className="w-2.5 h-2.5 rounded-sm " />
+
                   ) : null}
                 </View>
 
@@ -250,11 +267,12 @@ export default function LanguagesScreen() {
 
 
 
+
             {/* Devam Et Butonu */}
             <TouchableOpacity
               onPress={handleNext}
               disabled={!canProceed}
-              className="py-4 rounded-2xl mb-10"
+              className="py-4 rounded-2xl "
               style={{
                 backgroundColor: theme.colors.buttonBg,
                 opacity: canProceed ? 1 : 0.45,
@@ -264,13 +282,12 @@ export default function LanguagesScreen() {
                 Devam Et
               </Text>
             </TouchableOpacity>
-
-            {!canProceed && (
+            {hasAnyDraftInput && (
               <Text
-                className="text-center text-sm -mt-7 mb-8"
+                className="text-center text-xs mt-5 mb-10"
                 style={{ color: theme.colors.mutedText }}
               >
-                Devam etmek için en az 1 dil ekle veya “boş bırakmak istiyorum” seçeneğini işaretle.
+                Devam etmek için “Dil Ekle” butonuna basarak kaydı ekleyin veya alanları temizleyin.
               </Text>
             )}
 
