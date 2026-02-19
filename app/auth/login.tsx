@@ -7,6 +7,7 @@ import {
 import React, { useEffect, useState } from "react";
 //new analytics import
 import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
+import { Ionicons } from "@expo/vector-icons";
 import { logEvent, setUserId } from "app/utils/analytics";
 import {
   ActivityIndicator,
@@ -28,6 +29,7 @@ import * as Animatable from "react-native-animatable";
 import { clamp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 export default function LoginScreen() {
@@ -36,11 +38,11 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [showPassword, setShowPassword] = useState(false);
   // 🔹 İlk açılışta auth state kontrolü yaparken loader göstermek için
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-const { request, promptAsync, isProcessing } = useGoogleSignIn();
+  const { request, promptAsync, isProcessing } = useGoogleSignIn();
 
   // ✅ Uygulama açılır açılmaz: Eğer kullanıcı zaten giriş yapmışsa login ekranını atla
   useEffect(() => {
@@ -152,14 +154,27 @@ const { request, promptAsync, isProcessing } = useGoogleSignIn();
               <Text className="text-[#1E1E1E] font-extrabold text-[16px] mb-1">
                 Şifre
               </Text>
-              <TextInput
-                value={password}
-                onChangeText={setPassword}
-                placeholder="********"
-                secureTextEntry
-                placeholderTextColor="#999"
-                className="bg-white border-[3px] border-[#0C94B9] rounded-lg px-4 py-2 text-[16px]"
-              />
+
+              <View className="relative">
+                <TextInput
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="********"
+                  secureTextEntry={!showPassword}
+                  placeholderTextColor="#999"
+                  className="bg-white border-[3px] border-[#0C94B9] rounded-lg px-4 py-2 text-[16px]"
+                />
+                <Pressable
+                  onPress={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={22}
+                    color="#0C94B9"
+                  />
+                </Pressable>
+              </View>
             </View>
 
             {/* 🔵 Giriş Yap */}

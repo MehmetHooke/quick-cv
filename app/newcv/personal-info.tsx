@@ -340,10 +340,10 @@ export default function PersonalInfoScreen() {
                 color: theme.colors.text,
               }}
             />
-
+            
             {/* 💼 Meslek / Başlık (headline) */}
             <TextInput
-              placeholder="Mesleğin / Başlığın (Örn: Full Stack Mobil & Web Geliştirici)"
+              placeholder="Meslek"
               placeholderTextColor={placeholderColor}
               value={personalInfo.headline || ""}
               onChangeText={(t) =>
@@ -385,7 +385,7 @@ export default function PersonalInfoScreen() {
                   className="text-base font-semibold"
                   style={{ color: theme.colors.text }}
                 >
-                  Ek İletişim Bilgileri (İsteğe bağlı)
+                  Ek İletişim Bilgileri Ekle (İsteğe bağlı)
                 </Text>
                 <Text
                   className="text-xl"
@@ -440,7 +440,7 @@ export default function PersonalInfoScreen() {
                   </Text>
 
                   <TextInput
-                    placeholder="İletişim Adı (Örn: Telegram, Kişisel Site, Behance)"
+                    placeholder="İletişim Adı (Örn: Telegram, İnstagram, Web sitesi)"
                     placeholderTextColor={placeholderColor}
                     value={newContactLabel}
                     onChangeText={setNewContactLabel}
@@ -454,7 +454,7 @@ export default function PersonalInfoScreen() {
                   />
 
                   <TextInput
-                    placeholder="Bağlantı veya bilgi (Örn: https://t.me/kullanici)"
+                    placeholder="Bağlantı adresi (Örn: https://t.me/kullanici)"
                     placeholderTextColor={placeholderColor}
                     value={newContactValue}
                     onChangeText={setNewContactValue}

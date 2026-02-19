@@ -1,6 +1,8 @@
 import { app, db } from "@/firebaseConfig";
+import { Ionicons } from "@expo/vector-icons";
 import { logEvent, setUserId } from "app/utils/analytics";
 import { router } from "expo-router";
+
 import {
   createUserWithEmailAndPassword,
   getAuth,
@@ -32,6 +34,9 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
 
   const openPrivacy = async () => {
     const supported = await Linking.canOpenURL(PRIVACY_URL);
@@ -161,14 +166,28 @@ export default function RegisterScreen() {
                 <Text className="text-[#1E1E1E] font-extrabold text-[16px] mb-1">
                   Şifre
                 </Text>
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="********"
-                  secureTextEntry
-                  placeholderTextColor="#999"
-                  className="bg-white border-[3px] border-[#0C94B9] rounded-lg px-4 py-2 text-[16px]"
-                />
+
+                <View className="relative">
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="********"
+                    secureTextEntry={!showPassword}
+                    placeholderTextColor="#999"
+                    className="bg-white border-[3px] border-[#0C94B9] rounded-lg px-4 pr-12 py-2 text-[16px]"
+                  />
+
+                  <Pressable
+                    onPress={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                  >
+                    <Ionicons
+                      name={showPassword ? "eye-off" : "eye"}
+                      size={22}
+                      color="#0C94B9"
+                    />
+                  </Pressable>
+                </View>
               </View>
 
               {/* Şifre Tekrar */}
@@ -176,15 +195,30 @@ export default function RegisterScreen() {
                 <Text className="text-[#1E1E1E] font-extrabold text-[16px] mb-1">
                   Şifre Tekrar
                 </Text>
-                <TextInput
-                  value={confirm}
-                  onChangeText={setConfirm}
-                  placeholder="********"
-                  secureTextEntry
-                  placeholderTextColor="#999"
-                  className="bg-white border-[3px] border-[#0C94B9] rounded-lg px-4 py-2 text-[16px]"
-                />
+
+                <View className="relative">
+                  <TextInput
+                    value={confirm}
+                    onChangeText={setConfirm}
+                    placeholder="********"
+                    secureTextEntry={!showConfirm}
+                    placeholderTextColor="#999"
+                    className="bg-white border-[3px] border-[#0C94B9] rounded-lg px-4 pr-12 py-2 text-[16px]"
+                  />
+
+                  <Pressable
+                    onPress={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                  >
+                    <Ionicons
+                      name={showConfirm ? "eye-off" : "eye"}
+                      size={22}
+                      color="#0C94B9"
+                    />
+                  </Pressable>
+                </View>
               </View>
+
               {/* ✅ Kullanım koşulları onayı */}
               <Pressable
                 onPress={() => setAcceptedTerms((p) => !p)}

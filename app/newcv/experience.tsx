@@ -196,7 +196,7 @@ export default function ExperienceScreen() {
         />
 
         <TextInput
-          placeholder="Açıklama (opsiyonel)"
+          placeholder="Açıklama (Bu kısıma edindiğiniz deneyimleri açıklamanız için ayrılmıştır)"
           placeholderTextColor={placeholderColor}
           multiline
           numberOfLines={3}
@@ -208,9 +208,10 @@ export default function ExperienceScreen() {
 
         <TouchableOpacity
           onPress={addExperience}
-          className="self-center  px-12 py-3 rounded-xl bg-cyan-600"
+          className="py-4 rounded-2xl mt-2"
+          style={{ backgroundColor: theme.colors.buttonBg }}
         >
-          <Text className="text-white text-sm font-semibold">
+          <Text className="text-center text-white font-semibold text-lg">
             Yeni Deneyim Ekle
           </Text>
         </TouchableOpacity>
