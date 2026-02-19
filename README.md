@@ -3,6 +3,8 @@
 QuickCV, kullanıcıların profesyonel CV'lerini saniyeler içinde oluşturmasını sağlayan modern bir **React Native (Expo Router)** tabanlı mobil uygulamadır.  
 Uygulama, kullanıcı dostu adım adım CV sihirbazı, özelleştirilebilir temalar, gerçek zamanlı önizleme ve **Google Cloud üzerinde çalışan HTML-to-PDF render servisi** ile profesyonel kalitede çıktılar sunar.
 
+LinkedIn Tanıtım videosu için <a href="https://www.linkedin.com/posts/mehmethoke_reactnative-expo-firebase-activity-7397329037620297729-EFii?utm_source=share&utm_medium=member_desktop&rcm=ACoAAC03NGcBX37Y24g-uzxAxfiCaYypEVFftjA" target="_blank">tıklayınız</a>
+
 ---
 
 ## 🚀 Özellikler
@@ -92,11 +94,11 @@ Bu mimari sayesinde:
 /src
   /templates   # HTML CV şablonları
   /fonts
-
+````
 
 Kurulum
 1️⃣ Depoyu Klonla
-git clone https://github.com/kullaniciadi/quickcv.git
+git clone https://github.com/mehmethooke/quickcv.git
 cd quickcv
 
 2️⃣ Bağımlılıkları Kur
@@ -161,15 +163,7 @@ await fetch(`${endpoint}/render`, {
 
  Kullanıcı profil sayfası
 
-🤝 Katkıda Bulunma
 
-Repoyu fork'layın
-
-Yeni bir branch açın: feature/ozellik-adi
-
-Değişikliklerinizi commit'leyin
-
-Pull Request gönderin
 
 📄 Lisans
 
