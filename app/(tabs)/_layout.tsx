@@ -49,7 +49,7 @@ export default function TabsLayout() {
           backgroundColor: theme.colors.navigationbar,
           borderRadius: 17,
           marginHorizontal: 20,
-          marginBottom: 40,
+          marginBottom: 55,
           height: 55,
           position: "absolute",
           overflow: "hidden",
