@@ -19,7 +19,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const ABOUT_MAX_LENGTH = 400; // ✅ Hakkında kısmı için karakter limiti
+const ABOUT_MAX_LENGTH = 800; // ✅ Hakkında kısmı için karakter limiti
 
 export default function AboutScreen() {
   const router = useRouter();
@@ -108,7 +108,8 @@ export default function AboutScreen() {
             {/* ✅ TextInput + Canlı karakter sayacı */}
             <View className="mb-6  relative">
               <TextInput
-                placeholder={`Örnek:\nMerhaba, ben Mehmet. Bilgisayar mühendisliği mezunuyum ve mobil uygulama geliştirme konusunda tutkuluyum. React Native ve Firebase kullanarak projeler geliştiriyorum. Hedefim, kullanıcı deneyimini ön planda tutan yenilikçi yazılımlar üretmek.`}
+                placeholder={`Örnek:\nKariyerine odaklı, öğrenmeye açık ve sorumluluk sahibi bir profesyonelim. Çalıştığım alanlarda kendimi sürekli geliştirmeyi, yeni teknolojileri takip etmeyi ve ekip çalışmasına katkı sağlamayı önemsiyorum. Problem çözme becerilerim ve analitik düşünme yeteneğim sayesinde verimli sonuçlar elde etmeyi hedeflerim.
+\nHedefim, bulunduğum pozisyonda değer üretmek ve kariyerimde sürdürülebilir bir gelişim sağlamaktır.`}
                 value={about}
                 placeholderTextColor={theme.colors.mutedText}
                 onChangeText={setAbout}
