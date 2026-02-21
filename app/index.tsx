@@ -62,7 +62,7 @@ export default function Index() {
       <View className="flex-1 justify-center items-center bg-white">
         <ActivityIndicator size="large" color="#0C94B9" />
         <Text className="mt-4 text-lg font-bold text-[#0C94B9]">
-          QuicklyCV Yükleniyor...
+          QuickCV Yükleniyor...
         </Text>
       </View>
     );
