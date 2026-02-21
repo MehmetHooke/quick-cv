@@ -1,3 +1,4 @@
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import { usePremium } from "@/context/PremiumContext";
 import { useTheme } from "@/context/ThemeContext";
 import { auth, db, storage } from "@/firebaseConfig";
@@ -52,6 +53,7 @@ export default function ProfileScreen() {
 
   // 🔹 Global tema
   const { themeName, theme, setThemeName } = useTheme();
+  const { alert, confirm } = useAppAlert();
 
   // Premium durumu
 const { isPremium, pdfLimit, pdfUsageCount, refresh } = usePremium();
@@ -146,10 +148,9 @@ useFocusEffect(
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      Alert.alert("Çıkış yapıldı", "Tekrar görüşmek üzere!");
       router.replace("../auth/login");
     } catch (error: any) {
-      Alert.alert("Hata", error.message);
+      alert("Hata", error.message,{variant:"warning"});
     }
   };
 

@@ -1,5 +1,6 @@
 // app/_layout.tsx
 import "@/app/global.css";
+import { AppAlertProvider } from "@/components/common/AppAlertProvider";
 import { CVProvider } from "@/context/CVContext";
 import { PremiumProvider } from "@/context/PremiumContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -17,19 +18,21 @@ WebBrowser.maybeCompleteAuthSession();
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <PremiumProvider> 
-          <CVProvider>
-            <StatusBar style="auto" />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="onboarding" />
-              <Stack.Screen name="auth" />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="newcv" />
-            </Stack>
-          </CVProvider>
-        </PremiumProvider>
-      </GestureHandlerRootView>
+      <AppAlertProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <PremiumProvider>
+            <CVProvider>
+              <StatusBar style="auto" />
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="onboarding" />
+                <Stack.Screen name="auth" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="newcv" />
+              </Stack>
+            </CVProvider>
+          </PremiumProvider>
+        </GestureHandlerRootView>
+      </AppAlertProvider>
     </ThemeProvider>
   );
 }

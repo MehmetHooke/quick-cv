@@ -6,12 +6,12 @@ import {
 } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 //new analytics import
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
 import { Ionicons } from "@expo/vector-icons";
 import { logEvent, setUserId } from "app/utils/analytics";
 import {
   ActivityIndicator,
-  Alert,
   Dimensions,
   Image,
   ImageBackground,
@@ -23,7 +23,7 @@ import {
   TextInput,
   TouchableOpacity,
   useWindowDimensions,
-  View,
+  View
 } from "react-native";
 import * as Animatable from "react-native-animatable";
 import { clamp } from "react-native-reanimated";
@@ -35,6 +35,8 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 export default function LoginScreen() {
   const { width } = useWindowDimensions();
   const logoSize = clamp(width * 0.8, 220, 360);
+
+  const { alert } = useAppAlert();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -61,7 +63,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Uyarı", "Lütfen tüm alanları doldurun.");
+      alert("Uyarı", "Lütfen tüm alanları doldurun.");
       return;
     }
 
@@ -79,7 +81,7 @@ export default function LoginScreen() {
       await logEvent("login_error", {
         code: error?.code ?? "unknown",
       });
-      Alert.alert("Giriş Hatası", "Kullanıcı Adı Veya Şifre Hatalı !");
+      alert("Giriş Hatası", "Kullanıcı Adı Veya Şifre Hatalı !");
     }
   };
 
