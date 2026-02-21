@@ -34,7 +34,7 @@ export function ContinueButton({
         }`}
       >
         <Text className="text-center text-white font-semibold text-lg">
-          {loading ? "Kaydediliyor..." : "Devam Et →"}
+          {loading ? "Kaydediliyor..." : "Devam Et"}
         </Text>
       </TouchableOpacity>
     </Animatable.View>

@@ -277,7 +277,7 @@ export default function CertificatesScreen() {
               }}
             >
               <Text className="text-center text-white font-semibold text-lg">
-                Devam Et →
+                Devam Et 
               </Text>
             </TouchableOpacity>
 
