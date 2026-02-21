@@ -60,7 +60,7 @@ export default function AboutScreen() {
       });
 
       setLoading(false);
-      router.push("/newcv/preview");
+      router.replace("/newcv/preview");
     } catch (error) {
       console.error("Hakkında kısmı kaydetme hatası:", error);
       Alert.alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
