@@ -12,15 +12,15 @@ import {
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   ImageBackground,
   RefreshControl,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import type { CVData, ThemeKey } from "@/context/CVContext";
 import { useCV } from "@/context/CVContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -35,7 +35,7 @@ export default function HistoryCv() {
   const router = useRouter();
   const { updateCV } = useCV();
   const { theme } = useTheme();
-
+  const { alert, confirm } = useAppAlert();
   const [items, setItems] = useState<SavedCV[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -130,38 +130,41 @@ export default function HistoryCv() {
       </ImageBackground>
     );
   }
-        // Silme fonksiyonu
+  // Silme fonksiyonu
 
-const handleDelete = (firestoreId: string) => {
-  Alert.alert(
-    "Emin misiniz?",
-    "Bu CV kalıcı olarak silinecek.",
-    [
-      { text: "İptal", style: "cancel" },
-      {
-        text: "Sil",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            const user = auth.currentUser;
-            if (!user) return;
+  const handleDelete = (firestoreId: string) => {
 
-            // Firestore'dan sil
-            await deleteDoc(doc(db, "users", user.uid, "cvs", firestoreId));
+    confirm({
+      title: "Emin misiniz?",
+      message: "Bu CV kalıcı olarak silinecek.",
+      variant: "warning",
+      dismissible: false,
+      cancelText: "Vazgeç",
+      confirmText: "Sil",
+      onConfirm: async () => {
+        try {
+          const user = auth.currentUser;
+          if (!user) return;
 
-            // UI'dan da sil
-            setItems((prev) =>
-              prev.filter((item) => item.firestoreId !== firestoreId)
-            );
-          } catch (error) {
-            console.log("Silme hatası:", error);
-            Alert.alert("Hata", "Silinirken bir problem oluştu.");
-          }
-        },
+          await deleteDoc(doc(db, "users", user.uid, "cvs", firestoreId));
+
+          setItems((prev) => prev.filter((item) => item.firestoreId !== firestoreId));
+
+          // confirm'in kapanmasına 1 tick ver
+          setTimeout(() => {
+            alert("Başarılı!", "Başarıyla geçmişte oluşturduğunuz CV silindi.", { variant: "success" });
+          }, 0);
+        } catch (error) {
+          console.log("Silme hatası:", error);
+          setTimeout(() => {
+            alert("Hata", "Silinirken bir problem oluştu.", { variant: "danger" });
+          }, 0);
+        }
       },
-    ]
-  );
-};
+    });
+
+
+  };
 
 
 
@@ -312,7 +315,7 @@ const handleDelete = (firestoreId: string) => {
                     </Text>
 
 
-                      {/* Sil butonu */}
+                    {/* Sil butonu */}
                     <TouchableOpacity
                       onPress={(e: any) => {
                         // Kartın onPress'inin tetiklenmesini engelle

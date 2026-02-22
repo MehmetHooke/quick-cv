@@ -1,3 +1,4 @@
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import BackButton from "@/components/common/BackButton";
 import { useCV } from "@/context/CVContext";
 
@@ -7,7 +8,6 @@ import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -34,6 +34,7 @@ export default function ExperienceScreen() {
   const { theme } = useTheme();
   const [skipExperience, setSkipExperience] = useState(false);
 
+  const { alert } = useAppAlert();
 
   const [experienceList, setExperienceList] = useState<ExperienceItem[]>(
     (cvData.experiences as ExperienceItem[]) || []
@@ -66,7 +67,7 @@ export default function ExperienceScreen() {
   // 🏢 Yeni deneyim ekleme
   const addExperience = () => {
     if (!newExp.company.trim() || !newExp.position.trim() || !newExp.startDate.trim()) {
-      Alert.alert("Eksik bilgi", "Lütfen şirket adı, pozisyon ve başlangıç tarihini doldurun.");
+      alert("Eksik bilgi", "Lütfen şirket adı, pozisyon ve başlangıç tarihini doldurun.");
       return;
     }
 
@@ -105,13 +106,13 @@ export default function ExperienceScreen() {
 
       const user = auth.currentUser;
       if (!user) {
-        Alert.alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
+        alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
         setLoading(false);
         return;
       }
 
       if (!cvData.id) {
-        Alert.alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyin.");
+        alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyin.");
         setLoading(false);
         return;
       }
@@ -127,7 +128,7 @@ export default function ExperienceScreen() {
       router.push("/newcv/certificates"); // 🔜 sonraki adım
     } catch (error) {
       console.error("Deneyim Kaydetme Hatası:", error);
-      Alert.alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
+      alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
       setLoading(false);
     }
   };

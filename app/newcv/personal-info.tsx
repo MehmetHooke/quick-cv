@@ -6,7 +6,6 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import React, { useState } from "react";
 import {
-  Alert,
   Image,
   ImageBackground,
   KeyboardAvoidingView,
@@ -22,6 +21,7 @@ import { ContinueButton } from "@/components/form/ContinueButton";
 import { useTheme } from "@/context/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import BackButton from "@/components/common/BackButton";
 
 export default function PersonalInfoScreen() {
@@ -30,7 +30,7 @@ export default function PersonalInfoScreen() {
   const [personalInfo, setPersonalInfo] = useState(cvData.personalInfo);
   const [loading, setLoading] = useState(false);
   const { theme } = useTheme();
-
+  const { alert } = useAppAlert();
   const isFormValid =
     personalInfo.firstName?.trim().length > 0 &&
     personalInfo.lastName?.trim().length > 0 &&
@@ -76,7 +76,7 @@ export default function PersonalInfoScreen() {
           setPersonalInfo((p: any) => ({ ...p, photo: url }));
         } catch (e) {
           console.error("Fotoğraf yükleme hatası:", e);
-          Alert.alert(
+          alert(
             "Uyarı",
             "Fotoğraf yüklenemedi. İnternetinizi kontrol edin."
           );
@@ -91,7 +91,7 @@ export default function PersonalInfoScreen() {
     const value = newContactValue.trim();
 
     if (!label || !value) {
-      Alert.alert(
+      alert(
         "Eksik bilgi",
         "Lütfen hem iletişim adını hem de bilgisini doldurun."
       );
@@ -125,7 +125,7 @@ export default function PersonalInfoScreen() {
         !personalInfo.lastName ||
         !personalInfo.email
       ) {
-        Alert.alert(
+        alert(
           "Eksik bilgi",
           "Lütfen isim, soyisim ve e-posta alanlarını doldurun."
         );
@@ -136,7 +136,7 @@ export default function PersonalInfoScreen() {
 
       const user = auth.currentUser;
       if (!user) {
-        Alert.alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
+        alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
         setLoading(false);
         return;
       }
@@ -179,7 +179,7 @@ export default function PersonalInfoScreen() {
       router.push("/newcv/languages");
     } catch (error) {
       console.error("CV Kaydetme Hatası:", error);
-      Alert.alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
+      alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
       setLoading(false);
     }
   };
@@ -201,18 +201,18 @@ export default function PersonalInfoScreen() {
           keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
         >
 
-            <View className="items-center mb-6">
-              <Text
-                className="text-2xl font-bold mb-1"
-                style={{ color: theme.colors.primary }}
-              >
-                Kişisel Bilgiler
-              </Text>
-              <View
-                className="h-1 w-1/3 rounded-full"
-                style={{ backgroundColor: theme.colors.primary }}
-              />
-            </View>
+          <View className="items-center mb-6">
+            <Text
+              className="text-2xl font-bold mb-1"
+              style={{ color: theme.colors.primary }}
+            >
+              Kişisel Bilgiler
+            </Text>
+            <View
+              className="h-1 w-1/3 rounded-full"
+              style={{ backgroundColor: theme.colors.primary }}
+            />
+          </View>
           <ScrollView
             className="flex-1 px-5 py-8 mt-5"
             contentContainerStyle={{ paddingBottom: 40 }}
@@ -220,58 +220,58 @@ export default function PersonalInfoScreen() {
             showsVerticalScrollIndicator={false}
           >
             {/* 📷 Fotoğraf */}
-{personalInfo.photo ? (
-  // 📌 Fotoğraf varsa → sadece yuvarlak fotoğraf göster + tıklanabilir
-  <TouchableOpacity
-    onPress={pickImage}
-    className="self-center mb-6"
-  >
-    <View
-      style={{
-        width: 140,
-        height: 140,
-        borderRadius: 70,
-        overflow: "hidden",
-        borderWidth: 3,
-        borderColor: theme.colors.primary,
-      }}
-    >
-      <Image
-        source={{ uri: personalInfo.photo }}
-        style={{ width: "100%", height: "100%" }}
-        resizeMode="cover"
-      />
-    </View>
+            {personalInfo.photo ? (
+              // 📌 Fotoğraf varsa → sadece yuvarlak fotoğraf göster + tıklanabilir
+              <TouchableOpacity
+                onPress={pickImage}
+                className="self-center mb-6"
+              >
+                <View
+                  style={{
+                    width: 140,
+                    height: 140,
+                    borderRadius: 70,
+                    overflow: "hidden",
+                    borderWidth: 3,
+                    borderColor: theme.colors.primary,
+                  }}
+                >
+                  <Image
+                    source={{ uri: personalInfo.photo }}
+                    style={{ width: "100%", height: "100%" }}
+                    resizeMode="cover"
+                  />
+                </View>
 
-    <Text
-      style={{
-        textAlign: "center",
-        marginTop: 8,
-        color: theme.colors.mutedText,
-        fontSize: 12,
-      }}
-    >
-      Değiştir
-    </Text>
-  </TouchableOpacity>
-) : (
-  // 📌 Fotoğraf yok → dashed border görünür
-  <TouchableOpacity
-    onPress={pickImage}
-    className="rounded-2xl p-10 items-center mb-6 border-2 border-dashed"
-    style={{
-      borderColor: theme.colors.inputBorder,
-      backgroundColor: theme.colors.card,
-    }}
-  >
-    <Text
-      className="font-extrabold"
-      style={{ color: theme.colors.mutedText }}
-    >
-      Fotoğraf Yükle
-    </Text>
-  </TouchableOpacity>
-)}
+                <Text
+                  style={{
+                    textAlign: "center",
+                    marginTop: 8,
+                    color: theme.colors.mutedText,
+                    fontSize: 12,
+                  }}
+                >
+                  Değiştir
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              // 📌 Fotoğraf yok → dashed border görünür
+              <TouchableOpacity
+                onPress={pickImage}
+                className="rounded-2xl p-10 items-center mb-6 border-2 border-dashed"
+                style={{
+                  borderColor: theme.colors.inputBorder,
+                  backgroundColor: theme.colors.card,
+                }}
+              >
+                <Text
+                  className="font-extrabold"
+                  style={{ color: theme.colors.mutedText }}
+                >
+                  Fotoğraf Yükle
+                </Text>
+              </TouchableOpacity>
+            )}
 
 
             {/* Form alanları */}
@@ -340,7 +340,7 @@ export default function PersonalInfoScreen() {
                 color: theme.colors.text,
               }}
             />
-            
+
             {/* 💼 Meslek / Başlık (headline) */}
             <TextInput
               placeholder="Meslek"

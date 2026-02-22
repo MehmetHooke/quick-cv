@@ -1,3 +1,4 @@
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import { app, db } from "@/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { logEvent, setUserId } from "app/utils/analytics";
@@ -11,7 +12,6 @@ import {
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-  Alert,
   Dimensions,
   Image, ImageBackground,
   KeyboardAvoidingView, Linking, Platform,
@@ -36,7 +36,7 @@ export default function RegisterScreen() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-
+  const { alert } = useAppAlert();
 
   const openPrivacy = async () => {
     const supported = await Linking.canOpenURL(PRIVACY_URL);
@@ -44,11 +44,11 @@ export default function RegisterScreen() {
   };
   const handleRegister = async () => {
     if (!firstName || !lastName || !email || !password || !confirm) {
-      Alert.alert("Uyarı", "Lütfen tüm alanları doldurun.");
+      alert("Uyarı", "Lütfen tüm alanları doldurun.");
       return;
     }
     if (password !== confirm) {
-      Alert.alert("Hata", "Şifreler eşleşmiyor.");
+      alert("Hata", "Şifreler eşleşmiyor.");
       return;
     }
 
@@ -73,13 +73,13 @@ export default function RegisterScreen() {
       await setUserId(user.uid);
       await logEvent("sign_up_success");
       //--
-      Alert.alert("Başarılı", "Kayıt işlemi tamamlandı!");
+      alert("Başarılı", "Kayıt işlemi tamamlandı!");
       router.replace("/(tabs)");
     } catch (error: any) {
       //--
       await logEvent("sign_up_error");
       //--
-      Alert.alert("Kayıt Hatası", error.message);
+      alert("Kayıt Hatası", error.message);
     }
   };
 

@@ -1,3 +1,4 @@
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import BackButton from "@/components/common/BackButton";
 import { useCV } from "@/context/CVContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -7,7 +8,6 @@ import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -55,11 +55,11 @@ export default function CertificatesScreen() {
   // - Draft yoksa: ya liste doluysa devam, ya da "boş bırakmak istiyorum" seçiliyse devam
   const canProceed = !hasAnyDraftInput && (certificateList.length > 0 || skipCertificates);
 
-
+  const { alert } = useAppAlert();
   // ➕ Yeni sertifika ekleme
   const addCertificate = () => {
     if (!newCert.name.trim() || !newCert.issuer.trim() || !newCert.date.trim()) {
-      Alert.alert("Eksik bilgi", "Lütfen sertifika adı, kurum ve tarihi doldurun.");
+      alert("Eksik bilgi", "Lütfen sertifika adı, kurum ve tarihi doldurun.");
       return;
     }
 
@@ -96,13 +96,13 @@ export default function CertificatesScreen() {
 
       const user = auth.currentUser;
       if (!user) {
-        Alert.alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
+        alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
         setLoading(false);
         return;
       }
 
       if (!cvData.id) {
-        Alert.alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyin.");
+        alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyin.");
         setLoading(false);
         return;
       }
@@ -118,7 +118,7 @@ export default function CertificatesScreen() {
       router.push("/newcv/skills"); // sonraki ekran
     } catch (error) {
       console.error("Sertifika Kaydetme Hatası:", error);
-      Alert.alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
+      alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
       setLoading(false);
     }
   };
@@ -277,7 +277,7 @@ export default function CertificatesScreen() {
               }}
             >
               <Text className="text-center text-white font-semibold text-lg">
-                Devam Et 
+                Devam Et
               </Text>
             </TouchableOpacity>
 

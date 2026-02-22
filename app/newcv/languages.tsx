@@ -1,4 +1,5 @@
 // app/newcv/languages.tsx
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import BackButton from "@/components/common/BackButton";
 import { Language, useCV } from "@/context/CVContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -7,7 +8,6 @@ import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -28,7 +28,7 @@ export default function LanguagesScreen() {
   );
   const [name, setName] = useState("");
   const [level, setLevel] = useState("");
-
+  const { alert } = useAppAlert();
   const placeholderColor = "#9CA3AF";
   const hasAnyDraftInput =
     name.trim().length > 0 ||
@@ -48,7 +48,7 @@ export default function LanguagesScreen() {
 
 
     if (!trimmedName || !trimmedLevel) {
-      Alert.alert(
+      alert(
         "Eksik bilgi",
         "Lütfen hem dil adını hem de seviyesini doldurun."
       );
@@ -88,7 +88,7 @@ export default function LanguagesScreen() {
       router.push("/newcv/education");
     } catch (error) {
       console.error("Dil bilgileri kaydedilirken hata:", error);
-      Alert.alert(
+      alert(
         "Hata",
         "Dil bilgileri kaydedilirken bir hata oluştu. Lütfen tekrar deneyin."
       );
@@ -229,7 +229,7 @@ export default function LanguagesScreen() {
                 activeOpacity={0.8}
                 onPress={() => {
                   if (hasAnyDraftInput) {
-                    Alert.alert(
+                    alert(
                       "Bilgi var",
                       "Boş bırakmak için önce alanları temizleyin veya 'Dil Ekle' butonuna basarak kaydı ekleyin."
                     );

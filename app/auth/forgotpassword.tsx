@@ -1,21 +1,21 @@
 // app/auth/forgotpassword.tsx (örnek path)
 
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import { auth } from "@/firebaseConfig";
 import { router } from "expo-router";
 import { sendPasswordResetEmail } from "firebase/auth";
 import React, { useState } from "react";
 import {
-    Alert,
-    Dimensions,
-    Image,
-    ImageBackground,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  Dimensions,
+  Image,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -24,12 +24,12 @@ const { width } = Dimensions.get("window");
 const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
-
+  const { alert } = useAppAlert();
   const handleSendResetEmail = async () => {
     const trimmed = email.trim();
 
     if (!trimmed) {
-      Alert.alert("Uyarı", "Lütfen e-posta adresinizi girin.");
+      alert("Uyarı", "Lütfen e-posta adresinizi girin.");
       return;
     }
 
@@ -38,7 +38,7 @@ const ForgotPasswordScreen = () => {
       await sendPasswordResetEmail(auth, trimmed);
 
       // Güvenlik / gizlilik için hep aynı mesaj:
-      Alert.alert(
+      alert(
         "E-posta Gönderildi",
         "Girdiğiniz e-posta adresine ait bir hesap varsa, bu adrese şifre sıfırlama bağlantısı gönderildi. Lütfen e-posta gelen kutunuzu (ve spam klasörünü) kontrol edin."
       );
@@ -49,7 +49,7 @@ const ForgotPasswordScreen = () => {
       console.log("Şifre sıfırlama hatası:", error);
 
       // kullanıcıya yine de genel bir mesaj verelim
-      Alert.alert(
+      alert(
         "Bilgilendirme",
         "Girdiğiniz e-posta adresine ait bir hesap varsa, şifre sıfırlama bağlantısı gönderildi. Eğer e-posta göremiyorsanız adresi kontrol edip tekrar deneyebilirsiniz."
       );

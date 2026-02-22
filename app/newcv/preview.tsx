@@ -9,7 +9,7 @@ import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
+
   ImageBackground,
   StyleSheet,
   Text,
@@ -18,6 +18,7 @@ import {
 } from "react-native";
 
 import { renderPdf, type Theme } from "@/app/lib/renderClient";
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import PreviewCV from "@/components/cvThemes/PreviewCV";
 import * as Sharing from "expo-sharing";
 
@@ -56,7 +57,7 @@ export default function PreviewScreen() {
   const [messageIndex, setMessageIndex] = useState(0);
 
   const { theme } = useTheme();
-
+  const { alert, confirm } = useAppAlert();
   const {
     isPremium,
     pdfLimit,
@@ -95,12 +96,12 @@ export default function PreviewScreen() {
       try {
         const user = auth.currentUser;
         if (!user) {
-          Alert.alert("Uyarı", "Giriş yapılmadı. Lütfen oturum açın.");
+          alert("Uyarı", "Giriş yapılmadı. Lütfen oturum açın.");
           router.push("/(tabs)");
           return;
         }
         if (!cvData?.id) {
-          Alert.alert(
+          alert(
             "Hata",
             "CV kimliği bulunamadı. Lütfen yeniden deneyin."
           );
@@ -114,11 +115,11 @@ export default function PreviewScreen() {
         if (snapshot.exists()) {
           setCv(snapshot.data());
         } else {
-          Alert.alert("Hata", "CV verisi bulunamadı.");
+          alert("Hata", "CV verisi bulunamadı.");
         }
       } catch (error) {
         console.error("CV çekme hatası:", error);
-        Alert.alert("Hata", "CV verisi alınırken bir hata oluştu.");
+        alert("Hata", "CV verisi alınırken bir hata oluştu.");
       } finally {
         setLoading(false);
       }
@@ -139,24 +140,23 @@ export default function PreviewScreen() {
         // Premium kullanıcı → özel limit doldu ekranı
         setPremiumLimitModalVisible(true);
         console.log("PREVIEW LIMIT CHECK:", {
-  isPremium,
-  pdfLimit,
-  pdfUsageCount,
-});
+          isPremium,
+          pdfLimit,
+          pdfUsageCount,
+        });
 
       } else {
         // Ücretsiz kullanıcı → Tema Paketine yönlendiren uyarı
-        Alert.alert(
-          "PDF Limitine Ulaştın",
-          "Bu ayki ücretsiz PDF hakkını doldurdun. Tema Paketini satın alarak hem tüm premium temaların hem de genişletilmiş PDF limitinin kilidini açabilirsin.",
-          [
-            { text: "Vazgeç", style: "cancel" },
-            {
-              text: "Tema Paketini Gör",
-              onPress: () => router.push("/paywall"),
-            },
-          ]
-        );
+        confirm({
+          title: "PDF Limitine Ulaştın",
+          message:
+            "Bu ayki ücretsiz PDF hakkını doldurdun. Tema Paketini satın alarak hem tüm premium temaların hem de genişletilmiş PDF limitinin kilidini açabilirsin.",
+          variant: "warning",
+          cancelText: "Vazgeç",
+          confirmText: "Tema Paketini Gör",
+          onConfirm: () => router.push("/paywall"),
+          dismissible: false,
+        });
       }
       return;
     }
@@ -202,26 +202,26 @@ export default function PreviewScreen() {
       setCompleted(true);
       //- analytics log event
       await logEvent("pdf_generated", {
-      theme: cvData.theme,
-      is_premium_user: isPremium,
+        theme: cvData.theme,
+        is_premium_user: isPremium,
       });
-    //---
+      //---
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, {
           mimeType: "application/pdf",
           dialogTitle: "PDF Paylaş",
         });
       } else {
-        Alert.alert("PDF Hazır", fileUri);
+        alert("PDF Hazır", fileUri);
       }
     } catch (e: any) {
       console.error("Render error:", e);
       if (e.message === "ERR_401") {
-        Alert.alert("Hata", "Uygulama anahtarı geçersiz.");
+        alert("Hata", "Uygulama anahtarı geçersiz.");
       } else if (e.name === "AbortError") {
-        Alert.alert("Zaman Aşımı", "Sunucu yanıt vermedi (30 sn).");
+       alert("Zaman Aşımı", "Sunucu yanıt vermedi (30 sn).");
       } else {
-        Alert.alert("Hata", `Render başarısız: ${e?.message ?? e}`);
+        alert("Hata", `Render başarısız: ${e?.message ?? e}`);
       }
     } finally {
       setTimeout(() => {
@@ -288,9 +288,8 @@ export default function PreviewScreen() {
         <View className="flex-col items-center  justify-between mt-6">
           <TouchableOpacity
             disabled={generating}
-            className={` self-center px-12 py-4 rounded-full ${
-              generating ? "bg-cyan-400" : "bg-cyan-600"
-            }`}
+            className={` self-center px-12 py-4 rounded-full ${generating ? "bg-cyan-400" : "bg-cyan-600"
+              }`}
             onPress={handleGeneratePDF}
           >
             <Text className="text-white font-semibold">

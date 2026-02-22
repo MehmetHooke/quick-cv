@@ -7,7 +7,6 @@ import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +19,7 @@ import {
 
 import { useTheme } from "@/context/ThemeContext";
 
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type EducationItem = {
@@ -33,7 +33,7 @@ export default function EducationScreen() {
   const router = useRouter();
   const { cvData, updateCV } = useCV();
   const { theme } = useTheme();
-
+  const { alert } = useAppAlert();
 
   const [educationList, setEducationList] = useState<EducationItem[]>(
     (cvData.education as EducationItem[]) || []
@@ -69,7 +69,7 @@ export default function EducationScreen() {
   // 🎓 Yeni eğitim ekle
   const addEducation = () => {
     if (!newEdu.school.trim() || !newEdu.department.trim() || !newEdu.year.trim()) {
-      Alert.alert("Eksik bilgi", "Lütfen okul adı, bölüm ve mezuniyet yılını doldurun.");
+      alert("Eksik bilgi", "Lütfen okul adı, bölüm ve mezuniyet yılını doldurun.");
       return;
     }
 
@@ -99,7 +99,7 @@ export default function EducationScreen() {
   const handleNext = async () => {
     try {
       if (educationList.length === 0) {
-        Alert.alert("Uyarı", "En az bir eğitim bilgisi eklemelisiniz.");
+        alert("Uyarı", "En az bir eğitim bilgisi eklemelisiniz.");
         return;
       }
 
@@ -108,13 +108,13 @@ export default function EducationScreen() {
 
       const user = auth.currentUser;
       if (!user) {
-        Alert.alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
+        alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
         setLoading(false);
         return;
       }
 
       if (!cvData.id) {
-        Alert.alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyiniz.");
+        alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyiniz.");
         setLoading(false);
         return;
       }
@@ -130,7 +130,7 @@ export default function EducationScreen() {
       router.push("/newcv/experience"); // sonraki sayfa
     } catch (error) {
       console.error("Eğitim Kaydetme Hatası:", error);
-      Alert.alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
+      alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
       setLoading(false);
     }
   };

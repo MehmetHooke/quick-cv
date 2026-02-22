@@ -88,26 +88,7 @@ export default function Onboarding3() {
             />
           </View>
 
-          {/* 2️⃣ */}
-          <View className="relative items-center">
-            <Text
-              style={{ fontSize: fontSizeTitle }}
-              className="text-[#1C1C1C] font-extrabold text-center leading-tight"
-            >
-              İster PDF olarak indir
-            </Text>
-            <Image
-              source={require("@/assets/icons/download.png")}
-              style={{
-                width: iconSize,
-                height: iconSize,
-                position: "absolute",
-                right: -iconSize * 1.4,
-                top: "10%",
-              }}
-              resizeMode="contain"
-            />
-          </View>
+
 
           {/* 3️⃣ */}
           <View className="relative items-center">

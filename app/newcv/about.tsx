@@ -1,3 +1,4 @@
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import BackButton from "@/components/common/BackButton";
 import { ContinueButton } from "@/components/form/ContinueButton";
 import { useCV } from "@/context/CVContext";
@@ -8,7 +9,6 @@ import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import {
-  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -29,11 +29,11 @@ export default function AboutScreen() {
   //
   const isFormValid = about.trim().length > 0;
   const { theme } = useTheme();
-
+  const { alert } = useAppAlert();
   const handleNext = async () => {
     try {
       if (!about.trim()) {
-        Alert.alert("Uyarı", "Kendini tanıtan kısa bir yazı girmelisin.");
+        alert("Uyarı", "Kendini tanıtan kısa bir yazı girmelisin.");
         return;
       }
 
@@ -42,13 +42,13 @@ export default function AboutScreen() {
 
       const user = auth.currentUser;
       if (!user) {
-        Alert.alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
+        alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
         setLoading(false);
         return;
       }
 
       if (!cvData.id) {
-        Alert.alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyin.");
+        alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyin.");
         setLoading(false);
         return;
       }
@@ -63,7 +63,7 @@ export default function AboutScreen() {
       router.replace("/newcv/preview");
     } catch (error) {
       console.error("Hakkında kısmı kaydetme hatası:", error);
-      Alert.alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
+      alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
       setLoading(false);
     }
   };

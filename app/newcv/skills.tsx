@@ -1,4 +1,5 @@
 // app/newcv/skills.tsx
+import { useAppAlert } from "@/components/common/AppAlertProvider";
 import BackButton from "@/components/common/BackButton";
 import { useCV } from "@/context/CVContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -8,7 +9,6 @@ import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 
 import React, { useState } from "react";
 import {
-  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -28,8 +28,8 @@ type SkillItem = {
 export default function SkillsScreen() {
   const router = useRouter();
   const { cvData, updateCV } = useCV();
-  const { theme } = useTheme();
-
+  const { theme } = useTheme(); 
+  const { alert } = useAppAlert();
   const [skills, setSkills] = useState<SkillItem[]>(
     (cvData.skills as SkillItem[]) || []
   );
@@ -56,7 +56,7 @@ export default function SkillsScreen() {
   // ➕ Yeni yetenek ekle
   const addSkill = () => {
     if (!newSkill.name.trim() || !newSkill.level.trim()) {
-      Alert.alert(
+      alert(
         "Eksik bilgi",
         "Lütfen hem yetenek adını hem de seviyesini doldurun."
       );
@@ -92,13 +92,13 @@ export default function SkillsScreen() {
 
       const user = auth.currentUser;
       if (!user) {
-        Alert.alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
+        alert("Uyarı", "Lütfen giriş yaptıktan sonra devam edin.");
         setLoading(false);
         return;
       }
 
       if (!cvData.id) {
-        Alert.alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyin.");
+        alert("Hata", "CV kimliği bulunamadı. Lütfen baştan deneyin.");
         setLoading(false);
         return;
       }
@@ -114,7 +114,7 @@ export default function SkillsScreen() {
       router.push("/newcv/about");
     } catch (error) {
       console.error("Yetenek Kaydetme Hatası:", error);
-      Alert.alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
+      alert("Hata", "Bilgiler kaydedilirken bir hata oluştu.");
       setLoading(false);
     }
   };
@@ -191,7 +191,7 @@ export default function SkillsScreen() {
                 activeOpacity={0.85}
                 onPress={() => {
                   if (hasAnyDraftInput) {
-                    Alert.alert(
+                    alert(
                       "Bilgi var",
                       "Boş bırakmak için önce alanları temizleyin veya 'Yeni Yetenek Ekle' ile kaydı ekleyin."
                     );
